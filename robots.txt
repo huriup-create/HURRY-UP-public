@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://huriup-create.github.io/HURRY-UP-public/sitemap.xml

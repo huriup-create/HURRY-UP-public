@@ -1,0 +1,2076 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>허리업 | 스마트 자세관리 앱 v2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: left = the phone app exactly as users see it; right = demo/test console for the presenter and for tuning the posture rules. Single light look, matching the app design. */
+:root{
+  --bg:#eef1f7;          /* stage behind the phone */
+  --app:#f6f8fc;         /* app background (very light grey-blue) */
+  --card:#ffffff;
+  --ink:#141c33;         /* primary text */
+  --muted:#6b7590;
+  --line:#e3e8f2;
+  --blue:#1f5cf5;        /* brand action blue */
+  --blue-deep:#0b2f8a;   /* wordmark navy */
+  --blue-soft:#eaf0ff;
+  --good:#17a36b; --good-soft:#e5f7ef;
+  --warn:#e8432f; --warn-soft:#fdecea;
+  --calm:#3d6fe8; --calm-soft:#eaf0fd;
+  --shadow:0 6px 24px rgba(25,45,100,.08);
+  --f-body:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-brand:"Barlow Semi Condensed","Arial Narrow","Noto Sans KR",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+/* Instagram-style scrollbar: native bars hidden everywhere; one slim overlay thumb (#sbThumb) shows only while scrolling */
+*{scrollbar-width:none}
+::-webkit-scrollbar{display:none;width:0;height:0}
+.sbthumb{position:absolute;right:3px;top:0;width:3px;border-radius:2px;background:rgba(20,30,55,.34);opacity:0;pointer-events:none;z-index:60;transition:opacity .35s ease;will-change:transform}
+.sbthumb.on{opacity:1;transition:opacity .12s ease}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:14px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 32px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.stage{display:flex;gap:28px;justify-content:center;align-items:flex-start;max-width:1180px;margin:0 auto}
+@media (max-width:920px){.stage{flex-direction:column;align-items:center}}
+
+/* ---------- phone ---------- */
+.phone{width:min(410px,100%);height:820px;max-height:calc(100dvh - 40px);min-height:640px;background:var(--app);border-radius:34px;box-shadow:0 20px 60px rgba(20,40,90,.16),0 0 0 8px #fff;position:relative;overflow:hidden;display:flex;flex-direction:column;flex:none}
+@media (max-width:460px){.phone{border-radius:24px;box-shadow:0 10px 30px rgba(20,40,90,.12)}}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 8px;gap:10px}
+.wordmark{font-family:var(--f-brand);font-weight:800;font-size:26px;letter-spacing:.02em;color:var(--blue-deep);line-height:1;display:inline-flex;align-items:baseline;white-space:nowrap}
+/* inverted exclamation: dot sits a little above the cap height of P, stem tapers to the baseline */
+.bang{display:inline-block;position:relative;width:.24em;height:.7em;margin-left:.07em}
+.bang::before{content:"";position:absolute;left:50%;top:-.2em;width:.2em;height:.2em;border-radius:50%;background:currentColor;transform:translateX(-50%)}
+.bang::after{content:"";position:absolute;left:50%;top:.1em;bottom:0;width:.17em;background:currentColor;transform:translateX(-50%);clip-path:polygon(35% 0,65% 0,100% 100%,0 100%);border-radius:0 0 .03em .03em}
+.onboard{position:absolute;inset:0;z-index:40;background:linear-gradient(170deg,#fff 0%,#eef3ff 100%);display:flex;flex-direction:column;padding:44px 26px 28px;gap:14px;overflow-y:auto}
+.onboard[hidden]{display:none!important}
+.onboard .wordmark{font-size:44px}
+.onboard h2{font-size:24px;font-weight:900;margin:26px 0 0;letter-spacing:-.02em;text-wrap:balance}
+.onboard p{margin:0;color:var(--muted);font-size:14px}
+.onboard label{font-size:13px;font-weight:700;color:#3a4560;margin-top:18px}
+.onboard input{font:inherit;font-size:18px;font-weight:700;color:var(--ink);-webkit-text-fill-color:var(--ink);caret-color:var(--blue);opacity:1;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:14px 16px;width:100%}
+.onboard input::placeholder{color:#9aa3b8;-webkit-text-fill-color:#9aa3b8;font-weight:500}
+.onboard input:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(31,92,245,.15)}
+.onboard .hint{font-size:12px;color:var(--muted)}
+.onboard .cta{margin-top:auto}
+.onboard .cta:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}
+.row .txt span.bigline{display:block;color:var(--ink);font-size:20px;font-weight:900;letter-spacing:-.01em;line-height:1.35}
+.row .txt span.bigline em{font-style:normal;color:var(--blue)}
+.row .txt span.labline{display:block;font-size:13px;color:#33405c}
+.row .txt span.labline em{font-style:normal;color:var(--blue);font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12.5px;font-weight:500;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:#b9c1d3;flex:none}
+.dot.on{background:#20c46b}.dot.demo{background:#8b6cf0}
+.screen{flex:1;overflow-y:auto;padding:4px 18px 18px;display:flex;flex-direction:column;gap:12px}
+/* home fits one view: no scrolling, the hero absorbs leftover height */
+#scr-home{overflow:hidden;gap:10px;padding-bottom:12px}
+#scr-home .hero{flex:1 1 auto;min-height:0;padding:14px}
+#scr-home .row{padding:10px 14px}
+#scr-home .row .ico{width:38px;height:38px}
+#scr-home .cta{padding:14px;flex:none}
+#scr-home .tiles,#scr-home .hello,#scr-home .row{flex:none}
+.screen[hidden]{display:none!important}
+h1.title{font-size:28px;font-weight:900;margin:2px 0 0;letter-spacing:-.02em}
+.hello h2{font-size:21px;font-weight:700;margin:0;letter-spacing:-.01em}
+.hello p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);border:1px solid #edf1f8}
+.hero{padding:16px;display:grid;grid-template-columns:1fr 46%;gap:8px;align-items:center;background:linear-gradient(160deg,#fff 0%,#f1f5ff 100%);transition:background .3s}
+.hero.bad{background:linear-gradient(160deg,#fff 0%,#fff1ef 100%)}
+.hero.idle{background:linear-gradient(160deg,#fff 0%,#f3f4f7 100%)}
+.hero .lab{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--blue)}
+.hero.bad .lab{color:var(--warn)}.hero.idle .lab{color:var(--muted)}
+.hero .state{font-size:34px;line-height:1.15;font-weight:900;margin:6px 0 4px;letter-spacing:-.03em;text-wrap:balance}
+.hero.bad .state{font-size:25px}
+.hero.idle .state{font-size:clamp(19px,5.6vw,25px);white-space:nowrap}
+.hero .state{word-break:keep-all}
+.hero .sub{color:var(--muted);font-size:12.5px;margin:0;word-break:keep-all;text-wrap:balance}
+.hero .live{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:11.5px;color:#43506d}
+.live i{width:7px;height:7px;border-radius:50%;background:#20c46b;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.heatbox{position:relative}
+.heatbox canvas{width:100%;height:auto;display:block}
+.heatlegend{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted);margin-top:4px}
+.heatlegend span.bar{flex:1;height:6px;border-radius:4px;background:linear-gradient(90deg,#eaf0ff,#3f7dff,#2fd0d6,#62d877,#ffd24a,#ff4a3d)}
+.orient{display:flex;justify-content:space-between;font-size:10.5px;line-height:1;color:#7d879e;margin-top:4px;padding:0 6% 0 5%}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{padding:12px 4px;text-align:center;display:grid;grid-template-rows:auto 34px auto;justify-items:center;align-content:start;gap:9px;min-width:0}
+.tile .k{font-size:11px;letter-spacing:-.02em;color:#44506b;font-weight:500;white-space:nowrap}
+.tile .ti{width:34px;height:34px;color:var(--blue);display:grid;place-items:center}
+.tile .ti svg{width:34px;height:34px}
+.tile .v{display:flex;align-items:baseline;justify-content:center;column-gap:3px;flex-wrap:wrap;white-space:nowrap}
+#tSit{font-size:clamp(14px,4.2vw,18px);flex-wrap:nowrap;column-gap:1px;letter-spacing:-.04em}
+#tSit small{font-size:10px;margin-right:2px}
+.gtxt{font-size:11px;font-weight:700;color:var(--blue)}
+.tile .ic{width:30px;height:30px;border-radius:50%;background:var(--blue-soft);display:grid;place-items:center;color:var(--blue)}
+.tile .ic svg{width:17px;height:17px}
+.tile .v{font-size:21px;font-weight:900;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .v small{font-size:11px;font-weight:700;margin-left:1px}
+.tile .v.blue{color:var(--blue)}
+.grade{font-size:10.5px;font-weight:700;color:var(--good);background:var(--good-soft);border:1px solid #bfe9d5;border-radius:6px;padding:1px 6px}
+.row{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.row .ico{width:44px;height:44px;border-radius:50%;background:var(--blue-soft);display:grid;place-items:center;color:var(--blue);flex:none}
+.row .ico svg{width:22px;height:22px}
+.row .txt{flex:1;min-width:0}
+.row .txt b{display:block;font-size:15px}
+.row .txt span{font-size:12px;color:var(--muted)}
+.switch{position:relative;width:50px;height:30px;flex:none}
+.switch input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;z-index:1}
+.switch i{position:absolute;inset:0;border-radius:999px;background:#cfd6e4;transition:.2s}
+.switch i::after{content:"";position:absolute;width:24px;height:24px;top:3px;left:3px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.2s}
+.switch input:checked+i{background:var(--blue)}
+.switch input:checked+i::after{left:23px}
+.cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;padding:16px;background:var(--blue);color:#fff;font-size:16px;font-weight:700;box-shadow:0 8px 20px rgba(31,92,245,.28)}
+.cta svg{width:20px;height:20px}
+.cta.red{background:var(--warn);box-shadow:0 8px 20px rgba(232,67,47,.28)}
+.nav{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--line);padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
+.nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;color:#5c667e;padding:4px}
+.nav button svg{width:24px;height:24px}
+.nav button[aria-current="page"]{color:var(--blue);font-weight:700}
+
+/* report */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border:1px solid var(--line);border-radius:14px;padding:3px}
+.seg button{border:0;background:none;border-radius:11px;padding:8px;font-size:13.5px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#fff;font-weight:700}
+.scorebig{padding:16px}
+.scorebig .k{font-size:14px;font-weight:700}
+.scorebig .n{display:flex;align-items:baseline;gap:6px;margin:2px 0}
+.scorebig .n strong{font-size:58px;line-height:1;font-weight:900;color:var(--blue);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.scorebig .n em{font-style:normal;font-size:20px;font-weight:900;color:var(--blue)}
+.scorebig .n .grade{font-size:15px;padding:3px 10px;margin-left:8px;align-self:center}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+.mini div{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.mini div+div{border-left:1px solid var(--line)}
+.mini span{font-size:11.5px;color:var(--muted)}
+.mini b{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:380px){.two{grid-template-columns:1fr}}
+.pad{padding:14px}
+.h3{font-size:14px;font-weight:700;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.rank{display:flex;flex-direction:column;gap:10px}
+.rank li{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;list-style:none}
+.rank .no{width:24px;height:24px;border-radius:50%;background:var(--blue-soft);color:var(--blue);font-weight:700;font-size:12px;display:grid;place-items:center}
+.rank li:first-child .no{background:var(--blue);color:#fff}
+.rank .nm{font-size:12.5px}
+.rank .bar{height:5px;border-radius:4px;background:#e6ebf5;margin-top:4px;overflow:hidden}
+.rank .bar i{display:block;height:100%;background:var(--blue);border-radius:4px}
+.rank .pct{font-size:13px;font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums}
+.rank{margin:0;padding:0}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#f1edff;color:#6a4fd8;white-space:nowrap}
+.bars{display:flex;align-items:flex-end;gap:8px;height:130px;padding-top:6px}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
+.bars i{display:block;width:100%;max-width:26px;border-radius:7px 7px 3px 3px;background:#c9d8ff}
+.bars div.today i{background:var(--blue)}
+.bars span{font-size:10.5px;color:var(--muted)}
+.bars b{font-size:10.5px;font-variant-numeric:tabular-nums}
+.insight{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:linear-gradient(120deg,#fff,#f0f4ff)}
+.insight .ico{width:38px;height:38px;border-radius:12px;background:var(--blue);display:grid;place-items:center;color:#fff;flex:none}
+.insight .ico svg{width:20px;height:20px}
+.insight b{font-size:14px}
+.insight p{margin:2px 0 0;font-size:13px;color:#33405c}
+
+/* challenge */
+.subt{margin:2px 0 0;color:#4b556d;font-size:13.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.streak{padding:20px 20px 18px;background:linear-gradient(140deg,#f6f9ff,#e9f0ff);border-color:#e1e9fb}
+.streak strong{display:block;font-size:32px;font-weight:900;color:var(--blue);letter-spacing:-.03em;line-height:1.15}
+.streak p{margin:8px 0 0;font-size:14px;color:#26314d;line-height:1.55}
+.days{display:flex;justify-content:space-between;align-items:flex-end;padding:12px 12px 14px;position:relative}
+.days div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:#4b556d;position:relative;z-index:1;flex:1}
+.days div+div::before{content:"";position:absolute;bottom:16px;right:calc(50% + 17px);width:calc(100% - 34px);height:2px;background:#d6e1fb}
+.days i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#e6eeff;color:var(--blue);box-shadow:inset 0 0 0 1px #d6e2ff}
+.days svg{width:18px;height:18px}
+.goal{display:flex;gap:14px;align-items:center;padding:16px}
+.gico{width:62px;height:62px;border-radius:50%;background:#eef3ff;display:grid;place-items:center;flex:none}
+.gico svg{width:46px;height:46px}
+.gtx{flex:1;min-width:0}
+.lab2{display:block;font-size:13.5px;color:#33405c}
+.lab2 em{font-style:normal;color:var(--blue);font-weight:700;margin-left:4px}
+.big2{display:block;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.01em;line-height:1.3;margin-top:2px}
+.big2 em{font-style:normal;color:var(--blue);font-weight:900;font-size:30px;margin-right:2px}
+.hint2{display:block;font-size:11.5px;color:var(--muted);margin-top:6px}
+.more{border:0;background:none;color:var(--blue);font-size:12.5px;font-weight:500;display:inline-flex;align-items:center;gap:2px;padding:0}
+.more svg{width:14px;height:14px}
+.nextb{padding:14px 16px}
+.nrow{display:flex;align-items:center;gap:14px}
+.nrow #nextBadge svg{width:62px;height:66px;display:block}
+.ntx{flex:1;min-width:0}
+.chev{width:20px;height:20px;color:#5c667e;flex:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap;width:100%;padding-left:34px}
+.chips button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500}
+.chips button[aria-checked="true"]{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.chips button:disabled{opacity:.4}
+.goalbar{height:10px;border-radius:6px;background:#e6ebf5;overflow:hidden;margin-top:10px}
+.goalbar i{display:block;height:100%;background:var(--blue);border-radius:6px}
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center}
+.badges div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px}
+.badges svg{width:72px;height:76px}
+.badges span{font-size:12.5px;color:#26314d}
+.badges .lock{opacity:.4;filter:grayscale(1)}
+
+/* settings */
+.sec{font-size:13px;font-weight:700;color:#3a4560;margin:6px 2px -4px}
+.list{padding:2px 0}
+.li{display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:52px}
+.li+.li{border-top:1px solid #f0f3f8}
+.li svg.lic{width:22px;height:22px;color:var(--blue);flex:none}
+.li .t{flex:1;min-width:0;font-size:14px}
+.li .t small{display:block;color:var(--muted);font-size:11.5px}
+.li .val{font-size:13px;color:var(--blue);font-weight:500;white-space:nowrap}
+.li input[type=range]{width:100%;accent-color:var(--blue)}
+.li select,.li input[type=text]{border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:#fff;font:inherit;font-size:13px;max-width:100%}
+.btnline{display:flex;gap:8px;padding:4px 16px 14px;flex-wrap:wrap}
+.btn{border:1px solid var(--blue);background:#fff;color:var(--blue);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:700;flex:1;min-width:120px}
+.btn.solid{background:var(--blue);color:#fff}
+.btn.ghost{border-color:var(--line);color:#43506d}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.profile{display:flex;align-items:center;gap:14px;padding:14px 16px}
+.avatar{width:52px;height:52px;border-radius:50%;background:var(--blue-soft);display:grid;place-items:center;flex:none}
+.avatar svg{width:34px;height:34px}
+.profile .pname{font-size:18px;font-weight:900}
+.profile .edit{display:flex;gap:6px;margin-top:6px}
+.profile .edit input{font:inherit;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;width:9em}
+.profile .edit button{border:1px solid var(--blue);background:#fff;color:var(--blue);border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:700}
+.profile p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.profile p b{color:var(--blue);font-size:18px}
+.note{font-size:11.5px;color:var(--muted);padding:0 16px 12px;margin:0}
+
+/* alert overlay inside the phone */
+.alert{position:absolute;left:0;right:0;top:0;bottom:var(--navh,66px);z-index:20;display:flex;flex-direction:column;align-items:center;padding:18px 18px 14px;gap:10px;overflow:hidden;animation:rise .25s ease-out}
+.alert[hidden]{display:none!important}
+.alert.normal{background:radial-gradient(circle at 50% 40%,#ffd9d3 0%,#fff3f1 55%,#fff 100%)}
+.alert.focus{background:radial-gradient(circle at 50% 40%,#dbe6ff 0%,#f2f6ff 60%,#fbfcff 100%)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.alert .mode{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;line-height:1;border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.75);border-radius:999px;padding:6px 8px 6px 12px;flex:none}
+.alert .mode span#alertModeName{display:flex;align-items:center;min-height:26px}
+.mswitch{position:relative;width:38px;height:22px;border-radius:999px;background:#d3d9e6;flex:none;transition:.2s}
+.mswitch i{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:.2s}
+.alert.focus .mswitch{background:var(--calm)}.alert.focus .mswitch i{left:18px}
+.alert .mode small{display:block;font-size:11.5px;font-weight:500}
+.alert.normal .mode small{color:var(--warn)}.alert.focus .mode small{color:var(--calm)}
+.alert .mode svg{width:26px;height:26px;flex:none}
+.alert.normal .mode svg{color:var(--warn)}.alert.focus .mode svg{color:var(--calm)}
+.alert .shout{font-size:42px;font-weight:900;letter-spacing:-.03em;line-height:1;margin-top:4px}
+.alert.normal .shout{color:var(--warn)}.alert.focus .shout{color:var(--calm);font-size:36px}
+.alert .lead{font-size:19px;font-weight:700;margin:0;text-align:center}
+.alert .heatbox{width:220px;flex:none}
+.alert .pulse{position:absolute;inset:-10px;border-radius:50%;pointer-events:none}
+.alert .what{width:100%;padding:14px 16px;display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.85)}
+.alert .what .ico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;flex:none;color:#fff;overflow:hidden}
+.alert .what .ico img{width:100%;height:100%;object-fit:contain}
+.alert.normal .what .ico{background:var(--warn)}.alert.focus .what .ico{background:var(--calm)}
+.alert .what svg{width:26px;height:26px}
+.alert .what b{font-size:16px;display:block}
+.alert .what span{font-size:12.5px;color:#4b556d}
+.alert .chans{width:100%;display:grid;grid-template-columns:1fr 1fr;background:rgba(255,255,255,.85)}
+.alert .chans div{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.alert .chans div+div{border-left:1px solid var(--line)}
+.alert .chans .c{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:none}
+.alert .chans .c svg{width:20px;height:20px}
+.alert .chans b{font-size:13px;display:block}
+.alert .chans em{font-style:normal;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;color:#fff}
+.alert .chans .off .c{background:#c8cfdd}.alert .chans .off em{background:#c8cfdd}
+.alert.normal .chans .on .c,.alert.normal .chans .on em{background:var(--warn)}
+.alert.focus .chans .on .c,.alert.focus .chans .on em{background:var(--calm)}
+.alert .close{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:12px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.8);display:grid;place-items:center}
+.alert .close svg{width:18px;height:18px}
+.alert .cta{margin-top:auto}
+.alert.focus .cta{background:var(--calm)}
+.shake{animation:shake .35s linear 3}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:#14213d;color:#fff;font-size:13px;padding:9px 14px;border-radius:12px;z-index:30;white-space:nowrap;box-shadow:var(--shadow)}
+.toast[hidden]{display:none!important}
+
+/* ---------- presenter console ---------- */
+.console{flex:1;min-width:0;max-width:640px;width:100%;display:flex;flex-direction:column;gap:14px}
+.console header h2{margin:0;font-size:20px;font-weight:900;letter-spacing:-.01em}
+.console header p{margin:2px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.panel h3{margin:0 0 10px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:11.5px}
+.srcseg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.srcseg button{border:1px solid var(--line);background:#f7f9fd;border-radius:12px;padding:10px;text-align:left}
+.srcseg button b{display:block;font-size:13.5px}
+.srcseg button span{font-size:11.5px;color:var(--muted)}
+.srcseg button[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft)}
+.scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.scen button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:13px;text-align:left}
+.scen button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.scen button:disabled{opacity:.4;cursor:not-allowed}
+.inline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:13px}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media (max-width:480px){.metrics{grid-template-columns:1fr}}
+.metric{border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.metric .mk{font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.metric .mv{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.gauge{position:relative;height:8px;border-radius:5px;background:#eef1f6;margin-top:6px}
+.gauge .z{position:absolute;top:0;bottom:0;background:#dff3e9}
+.gauge .n{position:absolute;top:-3px;width:3px;height:14px;border-radius:2px;background:var(--ink);transform:translateX(-1px)}
+.statusline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--good-soft);color:var(--good)}
+.tag.bad{background:var(--warn-soft);color:var(--warn)}.tag.idle{background:#f0f2f6;color:var(--muted)}
+.hold{flex:1;min-width:140px;height:8px;border-radius:5px;background:#eef1f6;overflow:hidden}
+.hold i{display:block;height:100%;width:0;background:var(--warn);transition:width .1s linear}
+.sgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+@media (max-width:480px){.sgrid{grid-template-columns:repeat(4,1fr)}}
+.sgrid div{border-radius:9px;padding:6px 4px;text-align:center;font-size:11px;border:1px solid var(--line);min-width:0}
+.sgrid b{display:block;font-size:14px;font-variant-numeric:tabular-nums}
+.sgrid span{color:#4f5a74}
+textarea{width:100%;min-height:250px;border:1px solid var(--line);border-radius:12px;padding:10px;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink);background:#fafbfe;resize:vertical}
+.err{color:var(--warn);font-size:12px;margin:6px 0 0}
+.ok{color:var(--good);font-size:12px;margin:6px 0 0}
+.log{max-height:200px;overflow:auto;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#fafbfe;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.log div{white-space:pre-wrap;word-break:break-word}
+.log time{color:#8b94a8;margin-right:6px}
+.ilist{display:flex;flex-direction:column;gap:8px}
+.irow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.islot{width:40px;height:40px;border-radius:12px;background:var(--warn);display:grid;place-items:center;overflow:hidden;flex:none}
+.islot img{width:100%;height:100%;object-fit:contain}
+.iname{flex:1;min-width:90px;font-size:13px}
+.irow .btn{flex:none;min-width:0;padding:7px 10px;font-size:12.5px}
+.ifile{position:relative;overflow:hidden;cursor:pointer}
+.ifile input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.small{font-size:12px;color:var(--muted);margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== spacing & alignment pass (all screens) ===== */
+body{word-break:keep-all;overflow-wrap:break-word}
+p,.sub,.hint,.hint2,.note,.small,.insight p,.alert .what span,.li .t small{text-wrap:pretty}
+h1,h2,.state,.lead,.title{line-height:1.25}
+.hello{display:flex;flex-direction:column;gap:4px}.hello p{margin:0;line-height:1.4}
+.hero .lab{line-height:1}.hero .lab svg{flex:none}
+.hero .state{margin:8px 0 6px}
+.hero .sub{line-height:1.45}
+.hero .live{margin-top:14px}
+.tile .k{line-height:1.2}
+.tile .v{column-gap:0}.tile .v small{margin-left:2px;font-size:11px}
+#tSit small{margin-left:1px;margin-right:3px}#tSit small:last-child{margin-right:0}
+.row .txt{display:flex;flex-direction:column;gap:2px}.row .txt b{line-height:1.3}.row .txt span{line-height:1.4}
+/* report */
+.scorebig .n{align-items:baseline}.scorebig .n .grade{align-self:center;transform:translateY(-4px)}
+#rMsg{line-height:1.45}
+.mini{column-gap:0}.mini div{padding:0 6px;gap:3px}.mini span{line-height:1.2}.mini b{font-size:16px;line-height:1.25}
+.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.two .card{display:flex;flex-direction:column;min-width:0}
+.two .h3{flex-wrap:nowrap;white-space:nowrap}
+.two .h3 span:last-child{font-size:10.5px!important}
+.two .heatbox{margin:auto 0}
+.rank li{grid-template-columns:24px minmax(0,1fr);column-gap:8px;align-items:center}
+.rank .rb{display:flex;flex-direction:column;gap:5px;min-width:0}
+.rank .rt{display:flex;align-items:center;gap:8px}
+.rank .rt .bar{flex:1}
+.rank .nm{white-space:nowrap}
+.rank .nm{font-size:12.5px;letter-spacing:-.02em;min-width:0}
+.rank .bar{margin-top:0}
+.rank .nm{display:block;line-height:1.3}
+.rank .pct{flex:none;font-size:12.5px}
+.insight{align-items:center}.insight div{display:flex;flex-direction:column;gap:3px}.insight p{margin:0;line-height:1.5}
+.h3{line-height:1.3}
+/* challenge */
+.subt{line-height:1.4}
+.streak p{line-height:1.6}
+.days div{gap:8px}.days span{line-height:1}
+.lab2{line-height:1.35}.big2{margin-top:4px;line-height:1.15}
+.hint2{line-height:1.35}
+.badges div{gap:6px}.badges span{line-height:1.3;font-size:12px;text-wrap:balance}
+.more{line-height:1;align-self:center}.more svg{display:block}
+.nrow .ntx{display:flex;flex-direction:column;gap:2px}
+/* settings */
+.li{align-items:center}
+.li .t{display:flex;flex-direction:column;gap:2px;line-height:1.35}
+.li .t small{line-height:1.4}
+.li .val{align-self:center}
+.btnline .btn{line-height:1.3;white-space:nowrap}
+.note{line-height:1.5}
+.chips{margin-top:2px}
+.profile>div{display:flex;flex-direction:column;gap:2px}.profile p{line-height:1.3}
+/* alert */
+.alert{justify-content:space-between}.alert .cta{margin-top:0}
+.alert .what{align-items:center}
+.alert .what>span:last-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+.alert .what b{line-height:1.3}.alert .what span span{line-height:1.45}
+.alert .chans div>span:last-child{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.alert .chans b{line-height:1.2}
+.alert .lead{line-height:1.3}
+.cta{line-height:1.2}
+/* ===== 순공 모드 ===== */
+[hidden]{display:none!important}
+.li .t .tt{display:flex;align-items:center;gap:6px}
+.soon{margin-left:0}
+.nav{grid-template-columns:repeat(5,1fr)}
+.navbang{height:24px;display:grid;place-items:center;font-size:30px;line-height:1}
+.navbang .bang{margin:0;height:.72em;width:.26em}
+.stoggles .li{padding:12px 16px}
+.sic{width:22px;height:22px;display:grid;place-items:center;color:var(--blue);font-size:26px;flex:none}
+.sic .bang{margin:0}
+.soon{display:inline-block;font-size:10.5px;font-weight:700;color:#6a4fd8;background:#f1edff;border-radius:999px;padding:1px 7px;margin-left:4px;vertical-align:1px}
+.timer{padding:20px 18px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;background:linear-gradient(170deg,#fff 0%,#f1f5ff 100%)}
+.tmeta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
+.tmeta>*{margin:0!important;display:inline-flex;align-items:center;height:24px;line-height:1;box-sizing:border-box}
+.tmeta .chip{font-size:12px;font-weight:700;padding:0 10px}
+.tmeta>[hidden]{display:none!important}
+.stchip{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:#f0f2f6;color:var(--muted)}
+.stchip.run{background:var(--good-soft);color:var(--good)}
+.stchip.warn{background:#fff4df;color:#8a4a00}
+.stchip.err{background:var(--warn-soft);color:var(--warn)}
+.stchip.pause{background:var(--blue-soft);color:var(--blue)}
+.timer .ttl{font-size:14px;font-weight:700;color:#3a4560;margin-top:8px}
+.clock{font-family:var(--f-brand);font-size:clamp(52px,16vw,68px);font-weight:800;letter-spacing:.02em;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
+.clock.on{color:var(--blue)}
+.tsub{font-size:12.5px;color:var(--muted);line-height:1.45;min-height:1.45em}
+.tgoal{width:100%;margin-top:12px;text-align:left}
+.tg-row{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:#33405c;gap:8px}
+.tg-row b{color:var(--ink)}
+#stRate{font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums}
+.tgoal.done #stRate{color:var(--good)}.tgoal.done .goalbar i{background:var(--good)}
+.stctl{display:flex;flex-direction:column;gap:10px}
+.stop{width:100%;border:0;border-radius:16px;padding:16px;background:var(--ink);color:#fff;font-weight:800;font-size:17px;letter-spacing:.12em;display:flex;align-items:center;justify-content:center;gap:10px}
+.stop svg{width:18px;height:18px}
+.pausepick,.pauseinfo{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.pausepick p{margin:0;font-weight:700;font-size:14px}
+.pchips{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:8px}
+.pchips button{border:1px solid var(--blue);background:#fff;color:var(--blue);border-radius:12px;padding:12px 6px;font-weight:700;font-size:15px}
+.prow{display:flex;gap:8px}.prow .btn{min-width:0}
+.pauseinfo{align-items:center;text-align:center}
+.pauseinfo span{font-size:12.5px;color:var(--muted)}
+.pauseinfo b{font-family:var(--f-brand);font-size:34px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;line-height:1}
+.pauseinfo .prow{width:100%}
+.stnote{margin:0;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.45}
+/* ---- pomodoro ---- */
+.pmround{display:flex;gap:6px;justify-content:center;margin-top:2px}
+.pmround i{width:9px;height:9px;border-radius:50%;background:#dfe5f1;transition:background .3s}
+.pmround i.done{background:var(--blue)}
+.pmround i.cur{background:#fff;box-shadow:inset 0 0 0 2.5px var(--blue)}
+.pmround.brk i.done{background:var(--good)}
+.pmbar{width:100%;height:6px;border-radius:4px;background:#e6ebf5;overflow:hidden;margin-top:4px}
+.pmbar i{display:block;height:100%;background:var(--blue);border-radius:4px;transition:width .25s linear}
+.pmbar.brk i{background:var(--good)}
+.clock.brk{color:var(--good)}
+.timer.swap{animation:pmswap .45s ease}
+@keyframes pmswap{0%{transform:scale(.97);opacity:.55}100%{transform:none;opacity:1}}
+.stchip.seat{background:#eef1f7;color:#3a4560}
+.stchip.seat.ok{background:var(--good-soft);color:var(--good)}
+.stchip.seat.bad{background:var(--warn-soft);color:var(--warn)}
+.pmctl{display:flex;flex-direction:column;gap:10px}
+.pmvib{margin:0;font-size:11.5px;line-height:1.45;text-align:center;color:var(--muted)}
+.pmvib b{font-weight:700;color:#3a4560}
+.pmvib .ok{color:var(--good);font-weight:700}.pmvib .fail{color:var(--warn);font-weight:700}
+.pmcustom{display:flex;gap:8px;align-items:center;width:100%;padding-left:34px;margin-top:6px}
+.pmcustom input{width:76px;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit;font-size:14px;color:var(--ink);-webkit-text-fill-color:var(--ink);background:#fff}
+.pmcustom span{font-size:13px;color:#33405c}
+.pmcustom .btn{flex:none;min-width:0;padding:7px 14px}
+.pmstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center}
+.pmstats div{background:#f5f7fb;border-radius:12px;padding:10px 4px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pmstats b{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.pmstats span{font-size:11px;color:var(--muted)}
+.pmstats+.pmstats{margin-top:8px}
+
+/* countdown: dims the current screen, no dialog */
+.cdown{position:absolute;inset:0;z-index:35;background:rgba(12,22,48,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff;pointer-events:none;animation:cdfade .3s ease-out}
+.cdown[hidden]{display:none!important}
+.cdown.out{animation:cdout .5s ease forwards}
+.cdown.out .cd-num,.cdown.out .cd-txt,.cdown.out .cd-sub{transition:transform .5s ease,opacity .5s ease;transform:scale(.88);opacity:0}
+.cdown.red{background:rgba(48,14,18,.5)}
+.cdown.red .cd-num{color:#ff4a3d;text-shadow:0 6px 30px rgba(255,74,61,.35)}
+.cd-sub{font-size:14px;font-weight:500;opacity:.9;min-height:1.4em;text-align:center}
+.tsub.urgent{color:var(--warn);font-weight:700}
+@keyframes cdfade{from{opacity:0}}@keyframes cdout{to{opacity:0}}
+.cd-txt{font-size:24px;font-weight:900;letter-spacing:-.01em;text-shadow:0 2px 12px rgba(0,0,0,.25)}
+.cd-num{font-family:var(--f-brand);font-size:140px;font-weight:800;line-height:1;min-height:140px;text-shadow:0 6px 30px rgba(0,0,0,.25)}
+.cd-num.pop{animation:cdpop .38s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes cdpop{from{opacity:0;transform:scale(1.45)}to{opacity:1;transform:scale(1)}}
+/* end report sheet */
+.srep{position:absolute;left:0;right:0;bottom:var(--navh,66px);z-index:36;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -10px 40px rgba(20,40,90,.18);padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;max-height:calc(100% - var(--navh,66px) - 20px);overflow-y:auto;animation:rise .25s ease-out}
+.srep[hidden]{display:none!important}
+.srep h3{margin:0;font-size:19px;font-weight:900;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sgrid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sgrid2 div{background:var(--app);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.sgrid2 span{font-size:11.5px;color:var(--muted)}
+.sgrid2 b{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.25}
+.sgrid2 .hl{background:var(--blue-soft)}.sgrid2 .hl b{color:var(--blue)}
+.future{border:1px dashed #cfd6e4;border-radius:12px;padding:10px 12px}
+.future b{font-size:12.5px}
+.future li span{color:#b3bbcc}
+.future ul{margin:6px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
+.future li{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+/* badge celebration */
+.bcele{position:absolute;inset:0;z-index:45;background:rgba(246,248,252,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;animation:cdfade .25s}
+.bcele[hidden]{display:none!important}
+.bcele svg{width:120px;height:128px;animation:bpop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes bpop{from{transform:scale(.2) rotate(-15deg);opacity:0}}
+.bcele small{font-size:13px;color:var(--blue);font-weight:700;letter-spacing:.04em}
+.bcele b{font-size:24px;font-weight:900}
+.bcele p{margin:0;font-size:13px;color:var(--muted)}
+.bcele i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:conf 1.8s linear forwards}
+@keyframes conf{to{transform:translateY(900px) rotate(540deg)}}
+/* challenge: posture / study switch */
+.seg2{display:grid;grid-template-columns:1fr 1fr;background:#fff;border:1px solid var(--line);border-radius:14px;padding:3px}
+.seg2 button{border:0;background:none;border-radius:11px;padding:8px;font-size:14px;color:var(--muted)}
+.seg2 button[aria-pressed="true"]{background:var(--blue);color:#fff;font-weight:700}
+.chwrap{display:flex;flex-direction:column;gap:12px}
+.chwrap[hidden]{display:none!important}
+.stc{padding:16px;display:flex;flex-direction:column;gap:8px}
+.stc .h3{margin:0}
+.stbig{font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
+.stbig small{font-size:15px;font-weight:700;color:#3a4560;margin-left:2px}
+.delta{font-size:12px;font-weight:700;color:var(--muted)}
+.delta.up{color:var(--good)}.delta.down{color:var(--warn)}
+.wbars{display:flex;align-items:flex-end;gap:6px;height:110px;margin-top:4px}
+.wbars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
+.wbars i{display:block;width:100%;max-width:24px;border-radius:6px 6px 3px 3px;background:#c9d8ff;min-height:3px}
+.wbars div.today i{background:var(--blue)}
+.wbars span{font-size:11px;color:var(--muted);line-height:1}
+.wbars b{font-size:10px;font-weight:700;color:#3a4560;line-height:1;white-space:nowrap}
+.calhead{display:flex;align-items:center;justify-content:space-between}
+.calhead button{border:1px solid var(--line);background:#fff;border-radius:10px;width:32px;height:32px;display:grid;place-items:center}
+.calhead button svg{width:16px;height:16px}
+.calhead b{font-size:14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{font-size:10.5px;color:var(--muted);text-align:center;line-height:1.6}
+.cal button{aspect-ratio:1;border:0;border-radius:8px;font-size:11px;font-weight:700;color:#3a4560;background:#f3f5f9;display:grid;place-items:center;padding:0;font-variant-numeric:tabular-nums;max-width:100%}
+.cal button.none{background:transparent;color:#b3bbcc;font-weight:500;box-shadow:inset 0 0 0 1px #edf0f5}
+.cal button.zero{background:#fff;box-shadow:inset 0 0 0 1.5px #a9bdf3;color:#3a4560}
+.cal button.l1{background:#dbe6ff}.cal button.l2{background:#a9c2ff}.cal button.l3{background:#5d8cff;color:#fff}.cal button.l4{background:var(--blue);color:#fff}
+.cal button.future{background:transparent;color:#d0d5df;font-weight:500}
+.cal button.today{outline:2px solid var(--ink);outline-offset:-2px}
+.cal button.sel{outline:2px solid var(--warn);outline-offset:-2px}
+.cal .pad{background:none}
+.calleg{display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--muted);align-items:center}
+.calleg span{display:inline-flex;align-items:center;gap:4px}
+.calleg i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.calinfo{font-size:12.5px;color:#33405c;min-height:1.4em}
+.gchips{display:flex;gap:6px;flex-wrap:wrap}
+.gchips button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:500}
+.gchips button[aria-checked="true"]{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.gcustom{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gcustom input{width:80px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px;color:var(--ink)}
+.gcustom span{font-size:13px;color:#33405c}
+.gcustom .btn{flex:none;min-width:0;padding:8px 14px}
+.sbadges{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 6px;text-align:center}
+.sbadges div{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.sbadges svg{width:64px;height:68px}
+.sbadges .off svg{filter:grayscale(1);opacity:.35}
+.sbadges b{font-size:12.5px;line-height:1.25}
+.sbadges span{font-size:10.5px;color:var(--muted);line-height:1.3;text-wrap:balance}
+.sbadges .on span{color:var(--good);font-weight:700}
+.goaldone{font-size:12.5px;font-weight:700;color:var(--good)}
+/* ---- team feedback panel ---- */
+.fb{padding:18px 18px 14px;display:flex;flex-direction:column;gap:12px}
+.fbhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.fbhead h2{margin:0;font-size:20px;font-weight:900;letter-spacing:-.01em}
+.fbstat{font-size:12px;color:var(--muted);white-space:nowrap}
+.fbintro{margin:0;font-size:13px;color:var(--muted);line-height:1.5}
+#fbForm{display:flex;flex-direction:column;gap:10px;background:#f6f8fc;border-radius:14px;padding:12px}
+.fbrow{display:flex;align-items:center;gap:10px;min-width:0}
+.fblab{flex:none;width:30px;font-size:12px;font-weight:700;color:#3a4560}
+.fbscreen{font-size:13px;font-weight:700;color:var(--blue);background:#e8efff;border-radius:999px;padding:4px 11px}
+.fbchips{display:flex;gap:6px;flex-wrap:wrap}
+.fbchips button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500;font-family:inherit;cursor:pointer}
+.fbchips button[aria-checked="true"]{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.fbchips.sm button{padding:4px 10px;font-size:12px}
+#fbText{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;line-height:1.5;color:var(--ink);-webkit-text-fill-color:var(--ink);background:#fff;resize:vertical;min-height:72px}
+#fbText:focus,#fbNick:focus,#fbFltScreen:focus{outline:2px solid #bcd0ff;outline-offset:1px}
+.fbactions{display:flex;align-items:center;gap:8px}
+#fbNick{width:104px;flex:none;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;color:var(--ink);-webkit-text-fill-color:var(--ink);background:#fff}
+.fbmsg{flex:1;min-width:0;font-size:12px;color:var(--muted);text-align:right}
+.fbmsg.err{color:var(--warn)}
+.fbactions .btn{flex:none;min-width:84px}
+.fbactions .btn:disabled{opacity:.5}
+.fbfilter{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#fbFltScreen{border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:inherit;font-size:12.5px;color:var(--ink);background:#fff}
+.fblist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:560px;overflow:auto}
+.fblist li{border:1px solid #edf1f8;border-radius:14px;padding:11px 12px;display:flex;flex-direction:column;gap:6px;background:#fff}
+.fblist li.done{opacity:.6}
+.fbtags{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.fbtag{font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;background:#eef1f7;color:#3a4560}
+.fbtag.t-디자인{background:#efe7ff;color:#6a3fd1}.fbtag.t-기능{background:#e5efff;color:#1f5cf5}.fbtag.t-문구{background:#e6f6ee;color:#16804b}
+.fbtag.t-오류{background:#ffe9e6;color:#c8321b}.fbtag.t-아이디어{background:#fff3dc;color:#a76a00}
+.fbtext{margin:0;font-size:14px;line-height:1.55;color:var(--ink);white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.fbmeta{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
+.fbmeta .who{font-weight:700;color:#3a4560}
+.fbmeta select{margin-left:auto;border:1px solid var(--line);border-radius:8px;padding:3px 6px;font:inherit;font-size:11.5px;background:#fff;color:var(--ink)}
+.fbmeta .st{margin-left:auto;font-weight:700}
+.fbmeta .del{border:0;background:none;color:var(--muted);font:inherit;font-size:11.5px;text-decoration:underline;cursor:pointer;padding:2px}
+.fbempty{font-size:13px;color:var(--muted);text-align:center;padding:18px 8px;list-style:none}
+/* ---- connection lost / hourly chart / calibration wizard (merged onto live b34e) ---- */
+.dot.lost{background:#f5a524}
+.pill.lost{border-color:#f7d28a;background:#fff8e8;color:#8a4a00;font-weight:700}
+.hours{padding:14px}
+.hbars{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px;align-items:stretch;height:96px;margin-top:8px}
+.hbars button{border:0;background:none;padding:0;display:flex;align-items:flex-end;min-width:0;border-radius:4px}
+.hbars button i{display:block;width:100%;border-radius:4px 4px 2px 2px;background:#c9d8ff}
+.hbars .l-good i{background:var(--blue)}.hbars .l-mid i{background:#8fb0ff}.hbars .l-bad i{background:var(--warn)}.hbars .none i{background:#e9edf5}
+.hbars button.sel{outline:2px solid var(--ink);outline-offset:1px}
+.haxis{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px;margin-top:5px}
+.haxis span{font-size:10px;line-height:1;color:var(--muted);text-align:center;white-space:nowrap}
+.hinfo{font-size:12.5px;line-height:1.5;color:#33405c;margin:10px 0 8px;min-height:2.9em;text-wrap:pretty}
+.calwstep{background:var(--app);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.calwstep b{font-size:16px;line-height:1.3}
+.calwstep p{margin:0;font-size:13px;color:#33405c;line-height:1.5;text-wrap:pretty}
+.calw .pmround{margin:0}
+/* ===== HURRY UP v2 — visual & usability refresh (no behavioral changes) ===== */
+:root{--bg:#e9eef8;--app:#f7f9fd;--card:#fff;--ink:#17233d;--muted:#66738f;--line:#dfe6f2;--blue:#245be8;--blue-deep:#102e75;--blue-soft:#e9f0ff;--shadow:0 7px 24px rgba(25,49,100,.055)}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(circle at 15% 5%,#f8faff 0%,transparent 43%),radial-gradient(circle at 95% 70%,#dce7fc 0%,transparent 42%),var(--bg);line-height:1.55}
+.stage{gap:32px;max-width:1240px}
+.phone{border:1px solid rgba(255,255,255,.85);box-shadow:0 26px 72px rgba(23,47,100,.18),0 0 0 7px rgba(255,255,255,.9)}
+.topbar{padding:19px 19px 11px;background:rgba(255,255,255,.65);border-bottom:1px solid rgba(222,230,244,.7)}
+.wordmark{letter-spacing:.025em}
+.topbar .pill{max-width:54%;min-height:34px;font-weight:700;font-size:11.5px;overflow:hidden}
+.topbar .pill span:last-child{overflow:hidden;text-overflow:ellipsis}
+.screen{padding:12px 18px 22px;gap:14px}
+.hello h2{font-size:22px;letter-spacing:-.025em}
+.hello p{font-size:12.5px}
+.card{border:1px solid #e9eef8;box-shadow:0 5px 18px rgba(24,48,97,.055);transition:box-shadow .18s ease,border-color .18s ease}
+.hero{border:1px solid #dfe9ff;background:linear-gradient(155deg,#fff 0%,#edf3ff 100%);border-radius:22px}
+.hero .state{letter-spacing:-.045em}
+.tile{border-radius:17px;padding-top:13px;padding-bottom:12px}
+.tile .k{font-size:11px}
+.row{border-radius:18px}
+.cta,.stop{transition:filter .15s ease,transform .15s ease,box-shadow .15s ease}
+.cta:hover,.stop:hover{filter:brightness(1.045)}
+.cta:active,.stop:active{transform:scale(.985)}
+.nav{box-shadow:0 -5px 22px rgba(25,49,100,.035);border-top:1px solid #e4eaf5;padding:9px 6px calc(12px + env(safe-area-inset-bottom,0px))}
+.nav button{position:relative;min-height:51px;border-radius:12px;gap:4px;transition:background .18s ease,color .18s ease;font-weight:600}
+.nav button:hover{background:#f0f4fd}
+.nav button[aria-current="page"]{background:#eaf0ff;color:#1649c9}
+.nav button[aria-current="page"]::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 4px 4px;background:var(--blue)}
+.nav button svg{width:22px;height:22px}
+.panel{border:1px solid #e3eaf6;box-shadow:0 5px 20px rgba(24,48,97,.035);border-radius:18px}
+.console header h2{font-size:22px}
+.console header p{line-height:1.65}
+.console .panel h3{font-size:14.5px}
+.btn,.srcseg button,.scen button,.seg button,.seg2 button,.gchips button,.pchips button,.fbchips button{transition:background .15s ease,border-color .15s ease,transform .15s ease}
+.btn:hover,.srcseg button:hover,.scen button:hover,.gchips button:hover,.pchips button:hover,.fbchips button:hover{border-color:#8daaf2;background:#f2f6ff}
+.btn:active,.scen button:active{transform:scale(.985)}
+input,select,textarea{accent-color:var(--blue)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #8fb1ff!important;outline-offset:2px!important}
+.scorebig .n strong{letter-spacing:-.055em}
+.onboard{background:linear-gradient(165deg,#fff 0%,#edf3ff 100%)}
+.onboard h2{line-height:1.35}
+.alert .what,.alert .chans{border:1px solid rgba(225,233,247,.8);border-radius:18px}
+.log{font-size:11.5px}
+@media(min-width:921px){.console{position:relative}.stage{padding-top:10px}}
+@media(max-width:920px){body{padding:16px 12px 28px}.stage{gap:30px}.phone{max-height:none;height: min(820px,calc(100dvh - 34px));min-height:600px}.console{max-width:700px}}
+@media(max-width:460px){body{padding:8px 5px 24px}.phone{width:100%;height:calc(100dvh - 16px);min-height:570px;border-radius:24px;box-shadow:0 8px 28px rgba(20,40,90,.14)}.topbar{padding:14px 14px 9px}.wordmark{font-size:23px}.screen{padding:10px 13px 15px}.nav button{font-size:10.5px}.nav button svg{width:21px;height:21px}.tile{padding-left:2px;padding-right:2px}.hero{padding:12px!important}.console{padding:0 7px}.panel{padding:13px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.card,.cta,.stop,.nav button,.btn{transition:none!important}}
+
+
+/* v3: pressure insights + device battery */
+.device-battery{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#53617d;background:#f1f4fa;border:1px solid #dfe6f1;border-radius:999px;padding:7px 9px;white-space:nowrap}
+.device-battery svg{width:17px;height:13px}.device-battery.low{color:#c14434;background:#fff0ed}.device-battery[title]{cursor:help}
+.topbar{gap:6px}.topbar .wordmark{margin-right:auto}.topbar .pill{padding:7px 9px;font-size:11px}
+.pressure-overlay{position:absolute;left:5px;right:5px;bottom:16px;background:rgba(255,255,255,.94);border:1px solid #dfe8f5;border-radius:10px;padding:6px 8px;box-shadow:0 2px 8px rgba(15,35,80,.08)}
+.pressure-overlay .pressure-row{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:10px;color:#45536d}.pressure-overlay b{color:#173c8e;font-size:12px}
+.pressure-track{height:5px;background:#e8edf6;border-radius:8px;overflow:hidden;margin-top:4px}.pressure-track i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#6d9cff,#25c7b8,#ffbc42,#ef5c48);transition:width .2s}
+.pressure-detail{padding:14px 16px}.pressure-detail .hint{color:#64718c;font-size:11.5px;margin:5px 0 0}.pressure-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}.pressure-stat{background:#f4f7fd;border-radius:11px;padding:9px 6px;text-align:center}.pressure-stat span{display:block;color:#63708a;font-size:11px}.pressure-stat strong{display:block;color:#183e91;font-size:18px;font-variant-numeric:tabular-nums}.pressure-key{display:flex;align-items:center;gap:7px;font-size:11px;color:#62708b;margin-top:10px}.pressure-key i{display:block;height:7px;flex:1;border-radius:8px;background:linear-gradient(90deg,#eaf0ff,#3f7dff,#2fd0d6,#62d877,#ffd24a,#ff4a3d)}
+@media(max-width:460px){.topbar .wordmark{font-size:20px}.topbar .pill{font-size:10px;padding:6px}.device-battery{padding:6px;font-size:10px}.pressure-overlay{bottom:13px}}
+</style>
+
+<div class="stage">
+  <!-- ===================== PHONE APP ===================== -->
+  <div class="phone" id="phone">
+    <div class="topbar">
+      <span class="wordmark" aria-label="HURRY UP">HURRY UP<span class="bang" aria-hidden="true"></span></span>
+      <span class="device-battery" id="batteryBadge" title="방석에서 배터리 정보를 받으면 표시합니다. 데모에서는 표시하지 않습니다."><svg viewBox="0 0 24 16" aria-hidden="true"><rect x="1" y="2" width="19" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M22 6v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><span id="batteryText">—</span></span>
+      <button class="pill" id="connPill" type="button"><span class="dot" id="connDot"></span><span id="connText">방석 연결 안 됨</span></button>
+    </div>
+
+    <!-- HOME -->
+    <section class="screen" id="scr-home" aria-label="홈">
+      <div class="hello"><h2 id="helloName">안녕하세요, 연희님</h2><p>오늘도 바른 자세로 건강한 하루 보내세요!</p></div>
+      <div class="card hero" id="hero">
+        <div>
+          <div class="lab" id="heroLab"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>현재 자세</div>
+          <div class="state" id="heroState">좋아요</div>
+          <p class="sub" id="heroSub">바른 자세를 유지하고 있어요.</p>
+          <span class="live"><i></i><span id="liveText">실시간 모니터링 중</span></span>
+        </div>
+        <div class="heatbox"><canvas id="heatHome" width="300" height="272" aria-label="방석 압력 히트맵"></canvas>
+          <div class="orient"><span>오른쪽</span><span>왼쪽</span></div>
+          <div class="pressure-overlay" aria-live="off"><div class="pressure-row"><span>착석 압력 강도</span><b id="pressureHome">—</b></div><div class="pressure-track"><i id="pressureBar"></i></div></div>
+        </div>
+      </div>
+
+      <div class="tiles">
+        <div class="card tile"><span class="k">오늘 자세점수</span><span class="ti"><svg viewBox="0 0 24 24"><defs><linearGradient id="shg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b8bff"/><stop offset="1" stop-color="#1f5cf5"/></linearGradient></defs><path d="M12 1.8l8.5 3.2v6.3c0 5.3-3.6 9.4-8.5 11-4.9-1.6-8.5-5.7-8.5-11V5z" fill="url(#shg)"/><text id="tShield" x="12" y="15.6" text-anchor="middle" font-size="10" font-weight="900" fill="#fff" font-family="Barlow Semi Condensed,Arial,sans-serif">A</text></svg></span><span class="v"><span id="tScore">87<small>점</small></span></span></div>
+        <div class="card tile"><span class="k">오늘 착석</span><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 2"/></svg></span><span class="v" id="tSit">3<small>시간</small>18<small>분</small></span></div>
+        <div class="card tile"><span class="k">오늘 교정</span><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 9.5a4 4 0 0 1 0 5"/><path d="M11 7a7.5 7.5 0 0 1 0 10"/><path d="M15.5 4.5a11 11 0 0 1 0 15"/></svg></span><span class="v" id="tFix">14<small>회</small></span></div>
+        <div class="card tile"><span class="k">균형</span><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" shape-rendering="geometricPrecision"><circle cx="12" cy="4.2" r="1.5" fill="currentColor" stroke="none"/><path d="M12 5.8V19.5M8 20h8M4.5 7.2h15"/><path d="M6.6 7.2L3.4 14h6.4zM17.4 7.2L14.2 14h6.4z"/><path d="M3.4 14a3.2 2.3 0 0 0 6.4 0M14.2 14a3.2 2.3 0 0 0 6.4 0" fill="currentColor"/></svg></span><span class="v" id="tBal">93<small>%</small></span></div>
+      </div>
+      <div class="card row">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.4-2h-4.8a2.5 2.5 0 0 0 2.4 2zm7-6V11a7 7 0 0 0-5.5-6.8V3.5a1.5 1.5 0 0 0-3 0v.7A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/></svg></span>
+        <span class="txt"><b>집중모드</b><span id="focusDesc">팝업 창이 안 떠요</span></span>
+        <label class="switch"><input type="checkbox" id="focusHome" aria-label="집중모드"><i></i></label>
+      </div>
+      <button class="cta" type="button" data-go="report"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 20h3V11H4zm6.5 0h3V4h-3zM17 20h3v-7h-3z"/></svg>오늘 리포트 보기</button>
+    </section>
+
+    <!-- REPORT -->
+    <section class="screen" id="scr-report" aria-label="리포트" hidden>
+      <h1 class="title">자세 리포트</h1>
+      <div class="seg" role="group" aria-label="기간"><button type="button" data-period="day" aria-pressed="true">오늘</button><button type="button" data-period="week" aria-pressed="false">주간</button><button type="button" data-period="month" aria-pressed="false">월간</button></div>
+      <div class="card scorebig">
+        <div class="h3"><span>오늘 자세점수</span><span class="chip" id="seedChip">예시 기록 포함</span></div>
+        <div class="n"><strong id="rScore">87</strong><em>점</em><span class="grade" id="rGrade">A등급</span></div>
+        <div style="font-size:13px;color:#33405c" id="rMsg">좋은 자세를 유지하고 있어요!</div>
+        <div class="mini"><div><span>착석</span><b id="rSit">3시간 18분</b></div><div><span>교정</span><b id="rFix">14회</b></div><div><span>균형</span><b id="rBal">93%</b></div></div>
+      </div>
+      <div class="card pressure-detail" aria-label="실시간 압력 분석">
+        <div class="h3"><span>실시간 압력 분포</span><span class="chip" id="pressureSource">데모</span></div>
+        <div class="pressure-stats"><div class="pressure-stat"><span>평균 상대 압력</span><strong id="pressureAvg">—</strong></div><div class="pressure-stat"><span>최대 센서값</span><strong id="pressurePeak">—</strong></div><div class="pressure-stat"><span>좌우 균형</span><strong id="pressureBalance">—</strong></div></div>
+        <div class="pressure-key"><span>낮음</span><i></i><span>높음</span></div>
+        <p class="hint">센서 12개의 상대값을 시각화합니다. 실제 체중·압력(kPa)이나 의학적 위험도를 측정하는 수치는 아닙니다. 개인 보정 전후 값은 직접 비교하지 마세요.</p>
+      </div>
+      <div class="card pad" id="periodCard" hidden>
+        <div class="h3"><span id="periodTitle">최근 7일 자세점수</span><span class="chip">예시 + 오늘</span></div>
+        <div class="bars" id="bars"></div>
+      </div>
+      <div class="card hours" id="hoursCard">
+        <div class="h3"><span>시간대별 자세</span><span class="chip" id="hoursChip">예시 포함</span></div>
+        <div class="hbars" id="hbars"></div>
+        <div class="haxis" id="haxis" aria-hidden="true"></div>
+        <div class="hinfo" id="hinfo" aria-live="polite"></div>
+        <div class="calleg"><span><i style="background:var(--blue)"></i>85점 이상</span><span><i style="background:#8fb0ff"></i>70~84점</span><span><i style="background:var(--warn)"></i>70점 미만</span><span>막대 높이 = 앉은 시간 (시)</span></div>
+      </div>
+      <div class="two">
+        <div class="card pad"><div class="h3"><span>압력 분포</span><span style="font-size:11px;color:var(--muted);font-weight:500">오늘 평균</span></div>
+          <div class="heatbox"><canvas id="heatReport" width="300" height="272" aria-label="오늘 평균 압력 분포"></canvas></div>
+          <div class="heatlegend"><span>낮음</span><span class="bar"></span><span>높음</span></div></div>
+        <div class="card pad"><div class="h3">가장 많이 나온 자세</div><ol class="rank" id="rank"></ol></div>
+      </div>
+      <div class="card insight"><span class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7zM19 15l1 2.6 2.5 1-2.5 1L19 22l-1-2.4-2.5-1 2.5-1z"/></svg></span><div><b>한 줄 분석</b><p id="insight">오늘은 오른쪽으로 기대는 자세가 가장 많았어요.</p></div></div>
+      <div class="card pad"><div class="h3"><span>오늘의 집중</span><span style="font-size:11px;color:var(--muted);font-weight:500">순공 · 뽀모도로</span></div>
+        <div class="pmstats"><div><b id="rfStudy">0분</b><span>전체 순공</span></div><div><b id="rfPomo">0분</b><span>뽀모도로 집중</span></div><div><b id="rfDone">0회</b><span>완료한 집중</span></div></div></div>
+      <button class="btn ghost" type="button" id="resetToday" style="flex:none">오늘 기록 초기화 (예시 기록 지우기)</button>
+    </section>
+
+    <!-- CHALLENGE -->
+    <!-- STUDY (순공 모드) -->
+    <section class="screen" id="scr-study" aria-label="순공 모드" hidden>
+      <h1 class="title">순공 모드</h1>
+      <div class="card list stoggles">
+        <div class="li"><span class="sic" aria-hidden="true"><span class="bang"></span></span><span class="t">순공 모드<small id="stOnTxt">켜면 방석에 앉는 순간 공부를 시작해요</small></span><label class="switch"><input type="checkbox" id="stOn" aria-label="순공 모드"><i></i></label></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13.5" r="8"/><path d="M12 9.5v4l2.5 1.5M9 3h6M12 3v2.5"/></svg><span class="t"><span class="tt">뽀모도로</span><small id="pmDesc">집중 25분 · 휴식 5분 · 4회마다 긴 휴식</small></span><label class="switch"><input type="checkbox" id="stPomo" aria-label="뽀모도로"><i></i></label></div>
+      </div>
+      <div class="card timer">
+        <div class="tmeta"><span class="stchip" id="stState">꺼짐</span><span class="stchip seat" id="stSeat">미착석</span><span class="chip" id="stSrc">가상 착석</span></div>
+        <div class="ttl" id="stTtl">순공 시간</div>
+        <div class="pmround" id="pmRound" hidden></div>
+        <div class="clock" id="stClock" role="timer" aria-live="off">00:00:00</div>
+        <div class="pmbar" id="pmBar" hidden><i style="width:0%"></i></div>
+        <div class="tsub" id="stSub">순공 모드를 켜면 측정을 시작해요</div>
+        <div class="tgoal" id="stGoalBox"><div class="tg-row"><span>오늘 <b id="stToday">0분</b> / 목표 <b id="stGoal">2시간</b></span><span id="stRate">0%</span></div><div class="goalbar"><i id="stRateBar" style="width:0%"></i></div></div>
+      </div>
+      <div class="stctl">
+        <button class="stop" type="button" id="stStop" hidden><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>STOP</button>
+        <div class="card pausepick" id="stPick" hidden><p>얼마나 쉴까요?</p><div class="pchips" id="stPickChips"></div><div class="prow"><button class="btn ghost" type="button" id="stPickCancel">계속 공부</button><button class="btn" type="button" id="stEnd">공부 종료</button></div></div>
+        <div class="card pauseinfo" id="stPauseInfo" hidden><span>휴식 남은 시간 · 순공 시간에서 빠져요</span><b id="stPauseLeft">00:00</b><div class="prow"><button class="btn solid" type="button" id="stResume">바로 재개</button><button class="btn" type="button" id="stEnd2">공부 종료</button></div></div>
+        <button class="btn" type="button" id="stEnd3" hidden>공부 종료</button>
+        <div class="pmctl" id="pmCtl" hidden>
+          <button class="stop" type="button" id="pmPause"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>STOP</button>
+          <div class="prow"><button class="btn solid" type="button" id="pmResume" hidden>집중 재개</button><button class="btn" type="button" id="pmEndBtn">뽀모도로 종료</button></div>
+        </div>
+      </div>
+      <p class="pmvib" id="pmVib" hidden></p>
+      <p class="stnote" id="stNote">순공 중에는 자세 알림 팝업이 뜨지 않아요. 방석 진동은 그대로 울려요.</p>
+    </section>
+
+    <section class="screen" id="scr-challenge" aria-label="챌린지" hidden>
+      <div><h1 class="title">챌린지</h1><p class="subt">자세와 순공 습관을 게임처럼 관리해요</p></div>
+      <div class="seg2" role="group" aria-label="챌린지 종류"><button type="button" data-ch="posture" aria-pressed="true">자세</button><button type="button" data-ch="study" aria-pressed="false">순공</button></div>
+      <div id="chPosture" class="chwrap"><span class="chip" style="align-self:flex-start">예시 데이터</span>
+      <div class="card streak"><strong>7일 연속 성공</strong><p>정말 훌륭해요!<br>이 습관이 바른 자세를 만듭니다.</p></div>
+      <div class="card days" id="days"></div>
+      <div class="card goal">
+        <span class="gico"><svg viewBox="0 0 48 48"><circle cx="22" cy="26" r="16" fill="#fff" stroke="#1f5cf5" stroke-width="4.5"/><circle cx="22" cy="26" r="9" fill="#fff" stroke="#1f5cf5" stroke-width="4.5"/><circle cx="22" cy="26" r="3.2" fill="#1f5cf5"/><path d="M23 25L39 9" stroke="#1f5cf5" stroke-width="3.6" stroke-linecap="round"/><path d="M36 6l2 6 6 2-5 4-6-2-2-6z" fill="#1f5cf5"/></svg></span>
+        <div class="gtx"><span class="lab2">이번 주 목표 <em>90점 이상 5일</em></span><span class="big2"><em id="goalNow">4</em> / 5일 달성</span><div class="goalbar"><i id="goalBar" style="width:80%"></i></div><span class="hint2" id="goalHint"></span></div>
+      </div>
+      <div class="card pad"><div class="h3"><span>획득 배지</span><button type="button" class="more" id="badgeAll">전체 보기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button></div><div class="badges" id="badges"></div></div>
+      <div class="card nextb"><div class="h3" style="margin:0 0 6px">다음 배지</div>
+        <div class="nrow"><span id="nextBadge"></span><span class="ntx"><span class="lab2">30일 연속 성공까지</span><span class="big2"><em>23</em>일 남았어요.</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>
+      <button class="cta" type="button" id="todayChallenge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10v2h3v3a5 5 0 0 1-4.3 5A5 5 0 0 1 13 16v2h3v3H8v-3h3v-2a5 5 0 0 1-2.7-3A5 5 0 0 1 4 8V5h3zm-1 4v1a3 3 0 0 0 1.2 2.4C7.1 9.9 7 9.4 7 9V7zm11 0v2c0 .4-.1.9-.2 1.4A3 3 0 0 0 18 8V7z"/></svg>오늘의 챌린지 확인</button>
+      </div>
+      <div id="chStudy" class="chwrap" hidden>
+        <div class="card stc"><div class="h3"><span>오늘의 순공</span><span class="goaldone" id="csDone" hidden>목표 달성!</span></div>
+          <div class="stbig" id="csToday">0분</div>
+          <div class="tg-row"><span>일일 목표 <b id="csGoal">2시간</b></span><span id="csRate" style="font-weight:700;color:var(--blue)">0%</span></div>
+          <div class="goalbar"><i id="csRateBar" style="width:0%"></i></div></div>
+        <div class="card stc"><div class="h3"><span>주간 순공</span><span class="delta" id="cwDelta">—</span></div>
+          <div class="stbig" id="cwTotal">0분</div>
+          <div class="wbars" id="cwBars"></div></div>
+        <div class="card stc"><div class="h3"><span>월간 순공</span><span class="delta" id="cmDelta">—</span></div>
+          <div class="stbig" id="cmTotal">0분</div>
+          <div class="calhead"><button type="button" id="calPrev" aria-label="이전 달"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button><b id="calTitle">11월</b><button type="button" id="calNext" aria-label="다음 달"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
+          <div class="cal" id="cal"></div>
+          <div class="calinfo" id="calInfo">날짜를 누르면 순공 시간을 볼 수 있어요.</div>
+          <div class="calleg"><span><i style="box-shadow:inset 0 0 0 1px #edf0f5"></i>기록 없음</span><span><i style="box-shadow:inset 0 0 0 1.5px #a9bdf3"></i>0분</span><span><i style="background:#dbe6ff"></i><i style="background:#a9c2ff"></i><i style="background:#5d8cff"></i><i style="background:#1f5cf5"></i>목표 대비 많을수록 진하게</span></div></div>
+        <div class="card stc"><div class="h3"><span>뽀모도로 집중</span><span style="font-size:12px;color:var(--muted);font-weight:500">순공 시간에 한 번만 더해져요</span></div>
+          <div class="pmstats"><div><b id="cpToday">0분</b><span>오늘</span></div><div><b id="cpWeek">0분</b><span>이번 주</span></div><div><b id="cpMonth">0분</b><span>이번 달</span></div></div>
+          <div class="pmstats"><div><b id="cpDone">0회</b><span>완료한 집중</span></div><div><b id="cpAvg">0분</b><span>평균 집중</span></div><div><b id="cpCycle">0회</b><span>사이클</span></div></div>
+          <p class="stnote" style="text-align:left">완료한 집중·사이클·평균은 이번 달 기록이에요. 평균은 뽀모도로 1회 실행당 집중 시간이에요.</p></div>
+        <div class="card stc"><div class="h3">일일 순공 목표</div>
+          <div class="gchips" id="goalChips" role="radiogroup" aria-label="일일 순공 목표"><button type="button" role="radio" data-val="120">2시간</button><button type="button" role="radio" data-val="240">4시간</button><button type="button" role="radio" data-val="360">6시간</button></div>
+          <div class="gcustom"><label for="goalCustom" style="font-size:13px;color:#33405c">직접 입력</label><input id="goalCustom" type="number" min="0.5" max="16" step="0.5" placeholder="3.5"><span>시간</span><button class="btn" type="button" id="goalApply">적용</button></div></div>
+        <div class="card stc"><div class="h3"><span>순공 배지</span><span style="font-size:12px;color:var(--muted);font-weight:500" id="sbCount">0 / 10</span></div><div class="sbadges" id="sbadges"></div></div>
+      </div>
+
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="screen" id="scr-prefs" aria-label="설정" hidden>
+      <h1 class="title">설정</h1>
+      <div class="card profile">
+        <span class="avatar"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="47" cy="14" r="10" fill="#1b8ff0"/><circle cx="48" cy="33" r="4" fill="#1b6ef0"/><circle cx="47" cy="45" r="4.6" fill="#1560e6"/><circle cx="49" cy="58" r="5" fill="#0f52dc"/><circle cx="48" cy="71" r="5.4" fill="#0d47d4"/><path d="M18 88c10-8 40-9 66 0-22-4-44-4-66 0z" fill="#0d3fc4"/></svg></span>
+        <div style="min-width:0;flex:1"><span class="pname" id="pName">연희님</span><p>오늘 자세점수 <b id="pScore">87</b> 점</p>
+          <div class="edit"><label for="userName" style="position:absolute;left:-9999px">이름 변경</label><input id="userName" type="text" maxlength="10" placeholder="이름"><button type="button" id="nameSave">이름 변경</button></div></div>
+      </div>
+
+      <div class="sec">기기 상태</div>
+      <div class="card list">
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="10" rx="9" ry="4"/><path d="M3 10v4c0 2.2 4 4 9 4s9-1.8 9-4v-4"/></svg><span class="t">허리업 방석<small id="devDetail">연결된 방석이 없어요</small></span><span class="val" id="devState">연결 안 됨</span></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2"/></svg><span class="t">배터리<small>펌웨어 업데이트 후 표시돼요</small></span><span class="val" style="color:var(--muted)">지원 예정</span></div>
+        <div class="btnline"><button class="btn solid" type="button" id="btnConnect">방석 연결</button><button class="btn" type="button" id="btnDemo">데모로 보기</button></div>
+      </div>
+
+      <div class="sec">센서 보정</div>
+      <div class="card list">
+        <div class="btnline" style="padding-top:14px"><button class="btn solid" type="button" id="calWizard">단계별 안내로 보정하기</button></div>
+        <p class="note">직접 하나씩 하려면 ① 빈 방석 → ② 평소처럼 앉기 → ③ 바른 자세 저장 순서로 눌러 주세요. 색과 판정이 정확해져요.</p>
+        <div class="btnline"><button class="btn" type="button" id="calBase">① 빈 방석 기준</button><button class="btn" type="button" id="calRef">② 착석 기준</button><button class="btn solid" type="button" id="calNeutral">③ 바른 자세 저장</button></div>
+        <p class="note" id="calState">보정 전 · ADC 원시값 비율로 표시 중</p>
+      </div>
+
+      <div class="sec">알림 및 피드백</div>
+      <div class="card list">
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 16V11a6 6 0 0 0-12 0v5l-2 2h16zM10 21h4"/></svg><span class="t">앱 알림 (팝업)</span><label class="switch"><input type="checkbox" id="optPopup" checked aria-label="앱 알림"><i></i></label></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8M1 10v4M23 10v4"/></svg><span class="t">방석 진동 피드백</span><label class="switch"><input type="checkbox" id="optVib" checked aria-label="방석 진동 피드백"><i></i></label></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span class="t">소리 알림<small>일반 모드에서만 울려요</small></span><label class="switch"><input type="checkbox" id="optSound" checked aria-label="소리 알림"><i></i></label></div>
+        <div class="li" style="flex-wrap:wrap"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h3l3-7 4 14 3-7h5"/></svg><span class="t">진동 세기<small id="dutyNote">2개 동시 진동은 최대 40%</small></span><span class="val" id="dutyVal">40%</span><input type="range" id="duty" min="10" max="50" step="1" value="40" aria-label="진동 세기"></div>
+        <div class="li" style="flex-wrap:wrap"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><span class="t">진동 길이<small>한 번 울릴 때 진동하는 시간</small></span><div class="chips" id="pulse" role="radiogroup" aria-label="진동 길이"><button type="button" role="radio" data-val="300">0.3초</button><button type="button" role="radio" data-val="500">0.5초</button><button type="button" role="radio" data-val="800">0.8초</button><button type="button" role="radio" data-val="1000">1초</button></div></div>
+        <div class="li" style="flex-wrap:wrap"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span class="t">집중모드<small>팝업 창 없이 방석 진동으로만 알려요</small></span><label class="switch"><input type="checkbox" id="focusSet" aria-label="집중모드"><i></i></label><div class="chips" id="focusDur" role="radiogroup" aria-label="집중모드 시간"><button type="button" role="radio" data-val="10">10분</button><button type="button" role="radio" data-val="60">1시간</button><button type="button" role="radio" data-val="-1">계속</button></div></div>
+        <div class="btnline"><button class="btn" type="button" id="btnTestVib">진동 테스트</button><button class="btn ghost" type="button" id="btnTestAlert">알림 미리보기</button></div>
+      </div>
+      <div class="sec">순공 모드</div>
+      <div class="card list">
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="t">1분 일시정지</span><label class="switch"><input type="checkbox" id="stP1" data-min="1" aria-label="1분 일시정지"><i></i></label></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="t">5분 일시정지</span><label class="switch"><input type="checkbox" id="stP5" data-min="5" aria-label="5분 일시정지"><i></i></label></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="t">10분 일시정지</span><label class="switch"><input type="checkbox" id="stP10" data-min="10" aria-label="10분 일시정지"><i></i></label></div>
+        <div class="li" style="flex-wrap:wrap"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="t">자리 비움 유예시간<small>이 시간 안에 다시 앉으면 순공이 이어져요</small></span><div class="chips" id="stGrace" role="radiogroup" aria-label="자리 비움 유예시간"><button type="button" role="radio" data-val="10">10초</button><button type="button" role="radio" data-val="20">20초</button><button type="button" role="radio" data-val="30">30초</button><button type="button" role="radio" data-val="60">60초</button></div></div>
+        <p class="note">켜 둔 일시정지 시간만 STOP을 눌렀을 때 보여요. 최소 1개는 켜져 있어야 해요.</p>
+      </div>
+      <div class="sec">뽀모도로</div>
+      <div class="card list">
+        <div class="li" style="flex-wrap:wrap"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13.5" r="8"/><path d="M12 9.5v4l2.5 1.5M9 3h6M12 3v2.5"/></svg><span class="t">집중 시간<small>한 번 집중하는 시간</small></span><span class="val" id="pmFocusCVal"></span><div class="chips" id="pmFocusC" role="radiogroup" aria-label="집중 시간"><button type="button" role="radio" data-val="15">15분</button><button type="button" role="radio" data-val="25">25분</button><button type="button" role="radio" data-val="40">40분</button><button type="button" role="radio" data-val="50">50분</button><button type="button" role="radio" data-val="custom">직접 입력</button></div><div class="pmcustom" id="pmFocusCCus" hidden><input type="number" inputmode="numeric" min="5" max="120" placeholder="5~120" aria-label="집중 시간 직접 입력"><span>분</span><button class="btn" type="button">적용</button></div></div>
+        <div class="li" style="flex-wrap:wrap"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></svg><span class="t">짧은 휴식<small>집중 1회가 끝나면 쉬는 시간</small></span><span class="val" id="pmShortCVal"></span><div class="chips" id="pmShortC" role="radiogroup" aria-label="짧은 휴식"><button type="button" role="radio" data-val="3">3분</button><button type="button" role="radio" data-val="5">5분</button><button type="button" role="radio" data-val="10">10분</button><button type="button" role="radio" data-val="custom">직접 입력</button></div><div class="pmcustom" id="pmShortCCus" hidden><input type="number" inputmode="numeric" min="1" max="30" placeholder="1~30" aria-label="짧은 휴식 직접 입력"><span>분</span><button class="btn" type="button">적용</button></div></div>
+        <div class="li" style="flex-wrap:wrap"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></svg><span class="t">긴 휴식<small>여러 번 집중한 뒤 길게 쉬는 시간</small></span><span class="val" id="pmLongCVal"></span><div class="chips" id="pmLongC" role="radiogroup" aria-label="긴 휴식"><button type="button" role="radio" data-val="15">15분</button><button type="button" role="radio" data-val="20">20분</button><button type="button" role="radio" data-val="30">30분</button><button type="button" role="radio" data-val="custom">직접 입력</button></div><div class="pmcustom" id="pmLongCCus" hidden><input type="number" inputmode="numeric" min="5" max="60" placeholder="5~60" aria-label="긴 휴식 직접 입력"><span>분</span><button class="btn" type="button">적용</button></div></div>
+        <div class="li" style="flex-wrap:wrap"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></svg><span class="t">긴 휴식 간격<small>집중을 몇 번 마치면 긴 휴식을 할지</small></span><span class="val" id="pmEveryCVal"></span><div class="chips" id="pmEveryC" role="radiogroup" aria-label="긴 휴식 간격"><button type="button" role="radio" data-val="2">2회</button><button type="button" role="radio" data-val="3">3회</button><button type="button" role="radio" data-val="4">4회</button></div></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/></svg><span class="t">뽀모도로 진동<small>집중 시작 1회 · 짧은 휴식 2회 · 긴 휴식 3회 · 휴식 끝 1회</small></span><label class="switch"><input type="checkbox" id="pmVibOpt" aria-label="뽀모도로 진동"><i></i></label></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13" cy="4" r="2"/><path d="M9 21l3-7 3 3v4M7 12l3-4h4l2 3 3 1"/></svg><span class="t">휴식 중 일어서기 기록<small>휴식 시간에 자리를 비운 시간을 기록에 남겨요</small></span><label class="switch"><input type="checkbox" id="pmAwayOpt" aria-label="휴식 중 일어서기 기록"><i></i></label></div>
+        <p class="note">진행 중인 뽀모도로에서 바꾼 설정은 다음 단계부터 적용돼요.</p>
+      </div>
+      <div class="sec">앱 정보</div>
+      <div class="card list"><div class="li"><span class="t">앱 버전</span><span class="val">1.0.0 · 웹 프로토타입</span></div>
+        <div class="li"><svg class="lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2.2h12.4a1.5 1.5 0 0 0 1.3-2.2L14 9V3"/><path d="M7.5 15h9"/></svg><span class="t">예시 기록 보기<small>끄면 오늘 기록이 0부터 시작해요</small></span><label class="switch"><input type="checkbox" id="optSeed" aria-label="예시 기록 보기"><i></i></label></div>
+        <div class="btnline"><button class="btn ghost" type="button" id="logout">프로필 다시 만들기 (첫 화면으로)</button></div></div>
+    </section>
+
+    <!-- ONBOARDING -->
+    <form class="onboard" id="onboard" hidden novalidate>
+      <span class="wordmark">HURRY UP<span class="bang" aria-hidden="true"></span></span>
+      <h2>바른 자세 습관,<br>허리업과 시작해요</h2>
+      <label for="obName">어떻게 불러드릴까요?</label>
+      <input id="obName" type="text" maxlength="10" placeholder="이름 또는 닉네임" autocomplete="nickname">
+      <span class="hint" id="obHint">홈 화면에 ‘안녕하세요, ○○님’으로 표시돼요. 최대 10자.</span>
+      <span class="hint">방석을 연결하면 바른 자세 보정을 단계별로 안내해 드려요.</span>
+      <button class="cta" type="submit" id="obGo" disabled>프로필 만들고 시작하기</button>
+    </form>
+
+    <!-- STUDY OVERLAYS -->
+    <div class="cdown" id="cdown" hidden aria-live="assertive"><div class="cd-txt" id="cdTxt">공부 시작</div><div class="cd-num" id="cdNum"></div><div class="cd-sub" id="cdSub"></div></div>
+    <div class="srep" id="srep" role="dialog" aria-labelledby="srepTitle" hidden>
+      <h3><span id="srepTitle">순공 종료 리포트</span><span class="stchip" id="srepReason">사용자 종료</span></h3>
+      <div class="sgrid2" id="srepSt">
+        <div class="hl"><span>이번 세션 순공</span><b id="rpSession">0분</b></div>
+        <div class="hl"><span>오늘 누적 순공</span><b id="rpToday">0분</b></div>
+        <div><span>오늘 집중 세션</span><b id="rpCount">0회</b></div>
+        <div><span>평균 집중 시간</span><b id="rpAvg">0분</b></div>
+        <div><span>오늘 목표 달성률</span><b id="rpRate">0%</b></div>
+        <div><span>일시정지 횟수</span><b id="rpPause">0회</b></div>
+      </div>
+      <div class="sgrid2" id="srepPm" hidden>
+        <div class="hl"><span>이번 집중 시간</span><b id="ppFocus">0분</b></div>
+        <div class="hl"><span>완료한 집중</span><b id="ppDone">0회</b></div>
+        <div><span>휴식 시간</span><b id="ppBreak">0분</b></div>
+        <div><span>완료한 사이클</span><b id="ppCycle">0회</b></div>
+        <div><span>오늘 누적 순공</span><b id="ppToday">0분</b></div>
+        <div><span>진동 확인</span><b id="ppVib">—</b></div>
+      </div>
+      <div class="future" id="srepFuture"><b>자세 지표</b> <span class="soon">센서 연동 후 표시</span>
+        <ul><li>바른 자세 유지 비율<span>—</span></li><li>좌우 압력 균형<span>—</span></li><li>자세 변화 횟수<span>—</span></li><li>자세 알림 횟수<span>—</span></li></ul></div>
+      <p class="stnote" id="rpSeat">가상 착석 데이터로 측정한 기록이에요.</p>
+      <button class="cta" type="button" id="srepClose">확인</button>
+    </div>
+    <div class="srep calw" id="calw" role="dialog" aria-labelledby="calwTitle" hidden>
+      <h3><span id="calwTitle">방석 보정</span><button class="more" type="button" id="calwLater">나중에</button></h3>
+      <div class="pmround" id="calwDots"></div>
+      <div class="calwstep"><b id="calwHead"></b><p id="calwBody"></p></div>
+      <p class="stnote" id="calwNote"></p>
+      <button class="cta" type="button" id="calwGo">측정 시작</button>
+    </div>
+    <div class="bcele" id="bcele" hidden role="status"><small>배지 획득</small><span id="bceleSvg"></span><b id="bceleName">첫걸음</b><p id="bceleCond">최초 순공 30분 달성</p></div>
+
+    <!-- ALERT -->
+    <div class="alert normal" id="alert" role="alertdialog" aria-modal="false" aria-labelledby="alertLead" hidden>
+      <button class="close" type="button" id="alertClose" aria-label="알림 닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="mode" id="alertMode" type="button" aria-pressed="false" aria-label="집중모드 켜기/끄기"><svg viewBox="0 0 24 24" fill="currentColor" id="alertModeIcon"><path d="M12 22a2.5 2.5 0 0 0 2.4-2h-4.8a2.5 2.5 0 0 0 2.4 2zm7-6V11a7 7 0 0 0-5.5-6.8V3.5a1.5 1.5 0 0 0-3 0v.7A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/></svg><span id="alertModeName">일반 모드</span><span class="mswitch" aria-hidden="true"><i></i></span></button>
+      <div class="shout">허리업!</div>
+      <p class="lead" id="alertLead">자세가 무너지고 있어요.</p>
+      <div class="heatbox" id="alertHeatWrap"><canvas id="heatAlert" width="300" height="272" aria-label="현재 압력 분포"></canvas></div>
+      <div class="card what"><span class="ico" id="alertIco"></span><span><b id="alertTitle">오른쪽으로 기울고 있어요</b><span id="alertTip">양쪽 엉덩이에 체중을 고르게 실어 보세요.</span></span></div>
+      <div class="card chans"><div id="chPop" class="on"><span class="c"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.4-2h-4.8a2.5 2.5 0 0 0 2.4 2zm7-6V11a7 7 0 0 0-5.5-6.8V3.5a1.5 1.5 0 0 0-3 0v.7A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/></svg></span><span><b>팝업</b><em id="chPopTxt">ON</em></span></div><div id="chVib" class="on"><span class="c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/></svg></span><span><b>방석 진동</b><em id="chVibTxt">ON</em></span></div></div>
+      <button class="cta red" type="button" id="alertDone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6"/></svg><span id="alertDoneTxt">바른 자세로 돌아가 주세요</span></button>
+    </div>
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <nav class="nav" aria-label="메뉴">
+      <button type="button" data-go="home" aria-current="page"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>홈</button>
+      <button type="button" data-go="report"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 20h3V11H4zm6.5 0h3V4h-3zM17 20h3v-7h-3z"/></svg>리포트</button>
+      <button type="button" data-go="study"><span class="navbang" aria-hidden="true"><span class="bang"></span></span>순공</button>
+      <button type="button" data-go="challenge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10v2h3v3a5 5 0 0 1-4.3 5A5 5 0 0 1 13 16v2h3v3H8v-3h3v-2a5 5 0 0 1-2.7-3A5 5 0 0 1 4 8V5h3zm-1 4v1a3 3 0 0 0 1.2 2.4C7.1 9.9 7 9.4 7 9V7zm11 0v2c0 .4-.1.9-.2 1.4A3 3 0 0 0 18 8V7z"/></svg>챌린지</button>
+      <button type="button" data-go="prefs"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5A3.5 3.5 0 1 1 13 8.5a3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>설정</button>
+    </nav>
+  </div>
+
+  <!-- ===================== PRESENTER CONSOLE ===================== -->
+  <div class="console">
+    <section class="fb card" id="fb" aria-labelledby="fbTitle">
+      <div class="fbhead"><h2 id="fbTitle">팀 피드백</h2><span class="fbstat" id="fbStat">불러오는 중…</span></div>
+      <p class="fbintro">앱 화면을 직접 눌러 보면서 고칠 점을 남겨 주세요. 지금 보고 있는 화면이 함께 기록돼요. 방석 없이도 볼 수 있게 데모 데이터로 움직여요.</p>
+      <form id="fbForm" novalidate>
+        <div class="fbrow"><span class="fblab">화면</span><span class="fbscreen" id="fbScreen">홈</span></div>
+        <div class="fbrow"><span class="fblab">종류</span><div class="fbchips" id="fbType" role="radiogroup" aria-label="피드백 종류"></div></div>
+        <textarea id="fbText" maxlength="1000" rows="3" placeholder="예) 순공 타이머 숫자가 조금 더 컸으면 좋겠어요" aria-label="피드백 내용"></textarea>
+        <div class="fbactions"><input id="fbNick" maxlength="12" placeholder="이름 (선택)" aria-label="표시할 이름"><span class="fbmsg" id="fbMsg" role="status"></span><button class="btn solid" type="submit" id="fbSend">남기기</button></div>
+      </form>
+      <div class="fbfilter">
+        <div class="fbchips sm" id="fbFltStatus" role="radiogroup" aria-label="상태로 거르기"></div>
+        <select id="fbFltScreen" aria-label="화면으로 거르기"><option value="all">모든 화면</option></select>
+      </div>
+      <ul class="fblist" id="fbList"></ul>
+    </section>
+
+    <header><h2>데모 조작</h2><p>앱에는 보이지 않는 시연용 패널이에요. 아래에서 자세를 바꾸거나 착석·자리 비움을 눌러 보면서 화면이 어떻게 바뀌는지 확인해 보세요.</p></header>
+
+    <div class="panel">
+      <h3>데이터 입력 <small id="srcState">데모 시뮬레이터 실행 중</small></h3>
+      <div class="srcseg"><button type="button" id="srcDemo" aria-pressed="true"><b>데모 시뮬레이터</b><span>기기 없이 자세 시나리오 재생</span></button><button type="button" id="srcBle" aria-pressed="false"><b>실제 방석 (Bluetooth)</b><span>ESP32 허리업 방석에 연결</span></button></div>
+      <p class="small" id="bleHelp">실제 방석 연결은 Android·PC의 Chrome에서 이 페이지를 열었을 때만 동작해요. 브라우저가 막는 환경에서는 데모로 확인하고, 실제 연결은 APK에서 확인합니다.</p>
+    </div>
+
+    <div class="panel">
+      <h3>자세 시나리오 <small>데모 시뮬레이터 전용</small></h3>
+      <div class="scen" id="scen"></div>
+      <div class="inline"><label class="switch"><input type="checkbox" id="autoPlay" aria-label="시나리오 자동 재생"><i></i></label><span>자동 재생 (바른 자세 ↔ 무너진 자세 순환)</span></div>
+    </div>
+
+    <div class="panel">
+      <h3>실시간 판정 <small id="holdTxt">유지 0.0초 / 3.0초</small></h3>
+      <div class="statusline"><span class="tag" id="postTag">좋아요</span><span class="hold" aria-label="알림까지 남은 유지 시간"><i id="holdBar"></i></span></div>
+      <div class="metrics" id="metrics"></div>
+      <p class="small">초록 구간이 허용 범위예요. 검은 표시가 초록 밖에 정해진 시간 이상 머물면 팝업과 진동이 함께 나가요.</p>
+    </div>
+
+    <div class="panel">
+      <h3>순공 모드 테스트 <small>가상 착석 · 테스트 시계</small></h3>
+      <p class="small" id="stConsole" style="margin:0 0 10px"></p>
+      <div class="scen"><button type="button" id="tsSeat">착석 (바른 자세)</button><button type="button" id="tsAway">자리 비움</button><button type="button" id="tsDisc" aria-pressed="false">센서 연결 끊김</button></div>
+      <div class="scen" style="margin-top:6px"><button type="button" data-warp="1">시계 +1분</button><button type="button" data-warp="10">시계 +10분</button><button type="button" data-warp="60">시계 +1시간</button><button type="button" data-warp="0">시계 원위치</button></div>
+      <div class="btnline" style="padding:10px 0 0"><button class="btn ghost" type="button" id="tsReset">순공 기록 초기화</button></div>
+      <p class="small">테스트 시계는 시간이 흐른 것처럼 앞당겨요. 앞당긴 시간도 기록에 들어가니, 확인이 끝나면 기록을 초기화해 주세요.</p>
+    </div>
+
+    <div class="panel">
+      <h3>알림 아이콘 <small>직접 만든 이미지를 자세별로 넣어요 · PNG 권장</small></h3>
+      <div id="iconList" class="ilist"></div>
+      <p class="small">비워 두면 빨간 칸만 보여요. 넣은 이미지는 APK에도 같은 자리에 들어가요.</p>
+    </div>
+
+    <div class="panel">
+      <h3>센서 값 (상대값 %) <small>S번호 · 착석자 기준 위치</small></h3>
+      <div class="sgrid" id="sgrid"></div>
+    </div>
+
+    <div class="panel">
+      <h3>판정 설정 <small>데이터 수집 후 이 숫자만 바꾸면 돼요</small></h3>
+      <label for="cfgText" style="position:absolute;left:-9999px">판정 설정 JSON</label>
+      <textarea id="cfgText" spellcheck="false"></textarea>
+      <div class="btnline" style="padding:8px 0 0"><button class="btn solid" type="button" id="cfgApply">적용</button><button class="btn" type="button" id="cfgCopy">복사</button><button class="btn ghost" type="button" id="cfgReset">기본값</button></div>
+      <p class="small" id="cfgMsg">hold_ms: 무너진 자세가 이 시간 이상 이어지면 알림 · lr/fb_threshold: 허용 범위 · motors: 자세별로 진동할 모터 (0 앞오른쪽, 1 앞왼쪽, 2 뒤오른쪽, 3 뒤왼쪽)</p>
+    </div>
+
+    <div class="panel">
+      <h3>이벤트 로그 <small>판정 · 진동 명령 · 연결</small></h3>
+      <div class="log" id="log" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ geometry (from config/cushion_layout.json + app SensorPlacement.defaults) ============ */
+const PX = 3.918736914368775, OX = 900, OY = 814.5, IMG_W = 1800, IMG_H = 1629;
+const BOUNDARY = [[1674.9,684.5],[1675.4,759.2],[1684.3,797.7],[1692.0,915.2],[1660.3,1110.1],[1605.3,1261.0],[1562.7,1329.2],[1488.7,1424.5],[1459.0,1451.7],[1422.7,1472.4],[1328.3,1485.8],[1274.3,1479.9],[1218.6,1467.6],[1021.1,1401.9],[916.5,1380.0],[833.4,1381.9],[759.3,1401.8],[633.7,1452.3],[606.8,1471.5],[550.6,1488.6],[410.8,1470.6],[302.6,1437.5],[254.1,1407.6],[217.8,1358.3],[155.4,1222.5],[137.0,1138.3],[107.0,1047.7],[101.9,1000.0],[108.2,972.4],[89.6,852.5],[89.8,813.4],[103.5,773.2],[103.1,666.9],[119.5,507.1],[119.1,402.9],[149.0,300.3],[173.2,265.8],[179.3,241.8],[211.3,213.1],[266.2,179.5],[363.6,138.2],[466.7,122.5],[547.8,122.8],[754.1,170.8],[894.6,186.0],[1003.5,176.8],[1135.8,136.8],[1291.0,110.4],[1384.7,119.4],[1512.6,161.6],[1588.3,205.8],[1618.4,234.1],[1659.9,342.3],[1670.7,379.4],[1681.2,495.1],[1672.3,610.0]];
+// mm, +x = screen right (= seated LEFT), +y = front/knees. channel = id-1
+// smoothed outline: resample evenly, circular gaussian blur, then draw with midpoint quadratics
+const OUTLINE=(()=>{const P=BOUNDARY,seg=[];let L=0;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],d=Math.hypot(b[0]-a[0],b[1]-a[1]);seg.push([a,b,d,L]);L+=d}
+  const N=160,pts=[];for(let n=0;n<N;n++){const t=n/N*L;const sg=seg.find(q=>t>=q[3]&&t<=q[3]+q[2])||seg[seg.length-1];const u=(t-sg[3])/(sg[2]||1);pts.push([sg[0][0]+(sg[1][0]-sg[0][0])*u,sg[0][1]+(sg[1][1]-sg[0][1])*u])}
+  const W=[],R=7;for(let k=-R;k<=R;k++)W.push(Math.exp(-k*k/(2*3.2*3.2)));const ws=W.reduce((a,b)=>a+b,0);
+  const sm=pts.map((_,i)=>{let x=0,y=0;for(let k=-R;k<=R;k++){const p=pts[(i+k+N)%N];x+=p[0]*W[k+R];y+=p[1]*W[k+R]}return [x/ws,y/ws]});
+  const path=new Path2D();const mid=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];let m=mid(sm[N-1],sm[0]);path.moveTo(m[0],m[1]);
+  for(let i=0;i<N;i++){const c=sm[i],e=mid(sm[i],sm[(i+1)%N]);path.quadraticCurveTo(c[0],c[1],e[0],e[1])}path.closePath();return path})();
+const SENSORS = [[1,-50,40],[2,-140,40],[3,140,-40],[4,60,-40],[5,-60,-40],[6,-140,-40],[7,40,-130],[8,-40,-130],[9,-50,110],[10,50,110],[11,140,40],[12,50,40]].map(([id,x,y])=>({id,ch:id-1,x,y}));
+// motor outputs: 0 front-right, 1 front-left, 2 back-right, 3 back-left (seated)
+const MOTORS = [{out:2,x:-125.8,y:-105.3},{out:3,x:111.2,y:-109},{out:0,x:-110,y:107.8},{out:1,x:97.5,y:104}];
+const OUT_NAME = ['앞오른쪽','앞왼쪽','뒤오른쪽','뒤왼쪽'];
+const sideName = s => (s.x<0?'오른쪽':'왼쪽')+' · '+(s.y>60?'무릎':s.y>0?'허벅지':s.y>-80?'엉덩이':'뒤쪽');
+
+/* ============ posture rule config (becomes app_defaults.posture in project.json) ============ */
+const CFG_DEFAULT = {
+  version: 1,
+  note: "규칙 기반 v1 · 데이터 수집 후 숫자만 교체",
+  seated_min_avg: 8,
+  hold_ms: 3000,
+  recover_ms: 1000,
+  cooldown_ms: 12000,
+  repeat_ms: 8000,
+  max_repeats: 2,
+  lr_threshold: 0.18,
+  fb_threshold: 0.15,
+  cross_threshold: 0.35,
+  cross_back_max: 0.15,
+  neutral: { lr: 0, fb: -0.22, front_lr: 0, back_lr: 0 },
+  heat: { min: 0, max: 80 },
+  motors: { lean_right: [0, 2], lean_left: [1, 3], forward: [0, 1], slouch: [2, 3], leg_cross: [0, 1] }
+};
+let CFG = structuredClone(CFG_DEFAULT);
+
+const POSTURE = {
+  good:{state:'좋아요', sub:'바른 자세를 유지하고 있어요.', rank:'바른 자세'},
+  lean_right:{state:'오른쪽으로 기울고 있어요', tip:'양쪽 엉덩이에 체중을 고르게 실어 보세요.', rank:'오른쪽 쏠림', why:'오른쪽으로 기대는'},
+  lean_left:{state:'왼쪽으로 기울고 있어요', tip:'양쪽 엉덩이에 체중을 고르게 실어 보세요.', rank:'왼쪽 쏠림', why:'왼쪽으로 기대는'},
+  forward:{state:'앞으로 쏠려 있어요', tip:'엉덩이를 의자 안쪽으로 넣고 등을 세워 보세요.', rank:'앞으로 쏠림', why:'앞으로 쏠리는'},
+  slouch:{state:'허리가 굽고 있어요', tip:'허리를 곧게 펴고 앉으면 허리 부담을 줄일 수 있어요.', rank:'허리 굽힘', why:'허리를 굽히는'},
+  leg_cross:{state:'다리를 꼬고 있어요', tip:'두 발을 바닥에 나란히 두면 골반 균형을 지킬 수 있어요.', rank:'다리 꼬기', why:'다리를 꼬는'},
+  empty:{state:'자리를 비웠어요', sub:'앉으면 자동으로 측정을 시작해요.', rank:'자리 비움'}
+};
+const ICON = {
+  lean_right:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="4" r="2.6"/><path d="M8 8l3 1 2 6h5v2.5h-7L9 12l-1 5H5l1.8-8z"/><path d="M15 3l4 2-1 2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  lean_left:'<svg viewBox="0 0 24 24" fill="currentColor" style="transform:scaleX(-1)"><circle cx="9" cy="4" r="2.6"/><path d="M8 8l3 1 2 6h5v2.5h-7L9 12l-1 5H5l1.8-8z"/><path d="M15 3l4 2-1 2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  forward:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="15" cy="5" r="2.6"/><path d="M13 8.5L8 13l2 3h7v2.5H8.5L5 13l7-6z"/><path d="M3 21h18" stroke="currentColor" stroke-width="2"/></svg>',
+  slouch:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="5" r="2.6"/><circle cx="10.5" cy="9" r="1.3"/><circle cx="12" cy="11.6" r="1.3"/><circle cx="12.6" cy="14.4" r="1.3"/><path d="M6 17h12v3H6z"/></svg>',
+  leg_cross:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L9 15"/><circle cx="6" cy="18" r="1.6" fill="currentColor"/></svg>'
+};
+
+/* ============ helpers ============ */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const store = { get(k,d){try{const v=localStorage.getItem('huriup.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}}, set(k,v){try{localStorage.setItem('huriup.'+k,JSON.stringify(v))}catch(e){}} };
+function fmtDur(ms){const m=Math.floor(ms/60000),h=Math.floor(m/60);return {h,m:m%60}}
+function log(msg){const el=$('log');const d=document.createElement('div');const t=new Date();d.innerHTML='<time>'+t.toTimeString().slice(0,8)+'</time>';d.appendChild(document.createTextNode(msg));el.prepend(d);while(el.children.length>60)el.lastChild.remove()}
+let toastT; function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2400)}
+
+/* ============ heatmap renderer ============ */
+const RAMP=[[0,[234,240,255]],[.15,[157,187,255]],[.35,[63,125,255]],[.5,[47,208,214]],[.65,[98,216,119]],[.8,[255,210,74]],[1,[255,74,61]]];
+function ramp(t){for(let i=1;i<RAMP.length;i++){if(t<=RAMP[i][0]){const [a,ca]=RAMP[i-1],[b,cb]=RAMP[i],k=(t-a)/(b-a);return ca.map((c,j)=>c+(cb[j]-c)*k)}}return RAMP[RAMP.length-1][1]}
+const GW=84, GH=Math.round(84*IMG_H/IMG_W);
+const off=document.createElement('canvas');off.width=GW;off.height=GH;const offCtx=off.getContext('2d');const offImg=offCtx.createImageData(GW,GH);
+const cellMM=[];for(let j=0;j<GH;j++)for(let i=0;i<GW;i++)cellMM.push([((i+.5)/GW*IMG_W-OX)/PX,((j+.5)/GH*IMG_H-OY)/PX]);
+function fitCanvas(c){const dpr=Math.min(2,window.devicePixelRatio||1),w=c.clientWidth||300;const W=Math.round(w*dpr),H=Math.round(W*IMG_H/IMG_W);if(c.width!==W||c.height!==H){c.width=W;c.height=H}}
+function drawHeat(c,vals,opt={}){
+  if(!c.offsetParent)return; fitCanvas(c);
+  const ctx=c.getContext('2d'),W=c.width,H=c.height,k=W/IMG_W,sig2=2*42*42,lo=CFG.heat.min,hi=Math.max(lo+1,CFG.heat.max);
+  for(let n=0;n<cellMM.length;n++){const [mx,my]=cellMM[n];let ws=0,acc=0;for(let s=0;s<12;s++){const dx=mx-SENSORS[s].x,dy=my-SENSORS[s].y,w=Math.exp(-(dx*dx+dy*dy)/sig2);ws+=w;acc+=w*vals[s]}
+    const v=acc/(ws+.06),t=clamp((v-lo)/(hi-lo),0,1),col=ramp(t),p=n*4;offImg.data[p]=col[0];offImg.data[p+1]=col[1];offImg.data[p+2]=col[2];offImg.data[p+3]=255}
+  offCtx.putImageData(offImg,0,0);
+  ctx.clearRect(0,0,W,H);
+  // grey rim around the cushion: a thick stroke drawn first, the heat then covers its inner half so only the outer band shows
+  ctx.save();ctx.scale(k,k);ctx.lineJoin='round';ctx.lineWidth=2*Math.max(4,5*W/300)/k;ctx.strokeStyle='#d3d8e2';ctx.stroke(OUTLINE);ctx.restore();
+  ctx.save();ctx.scale(k,k);ctx.fillStyle='#eaf0ff';ctx.fill(OUTLINE);ctx.clip(OUTLINE);ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(off,0,0,W,H);ctx.restore();
+  ctx.save();ctx.scale(k,k);ctx.lineWidth=Math.max(1,1.4*W/300)/k;ctx.strokeStyle='rgba(60,75,110,.22)';ctx.stroke(OUTLINE);ctx.restore();
+  // motors
+  const now=performance.now();
+  MOTORS.forEach(m=>{const cx=(m.x*PX+OX)*k,cy=(m.y*PX+OY)*k,rw=34*PX*k,rh=22*PX*k,on=(state.motorUntil[m.out]||0)>now;
+    if(!on)return;ctx.beginPath();ctx.roundRect(cx-rw/2,cy-rh/2,rw,rh,rh/2);ctx.lineWidth=2.4*W/300;ctx.strokeStyle='#ff7a1a';ctx.stroke();
+    if(on){const ph=(now%500)/500;ctx.beginPath();ctx.roundRect(cx-rw/2-ph*10*W/300,cy-rh/2-ph*10*W/300,rw+ph*20*W/300,rh+ph*20*W/300,rh);ctx.strokeStyle='rgba(255,122,26,'+(1-ph)+')';ctx.lineWidth=2*W/300;ctx.stroke()}});
+  // sensors
+  if(opt.dots!==false)SENSORS.forEach((s,i)=>{const cx=(s.x*PX+OX)*k,cy=(s.y*PX+OY)*k,r=4.2*W/300;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fillStyle='rgba(255,255,255,.95)';ctx.fill();ctx.lineWidth=W/300;ctx.strokeStyle='rgba(20,30,60,.5)';ctx.stroke();
+    if(opt.labels){ctx.font='700 '+(9.5*W/300)+'px '+getComputedStyle(document.body).fontFamily;ctx.fillStyle='rgba(15,25,50,.85)';ctx.textAlign='center';ctx.fillText(Math.round(vals[i])+'%',cx,cy-r-2*W/300)}});
+}
+
+/* ============ state ============ */
+const state = {
+  batteryPct:null, batteryAt:0, source:'demo', scenario:'good', auto:false, autoIdx:0, autoT:0,
+  raw:new Array(12).fill(0), rel:new Array(12).fill(0), smooth:new Array(12).fill(0),
+  cal:{base:null, ref:null}, posture:'good', badSince:0, goodSince:0, lastAlert:-1e9, alertOpen:false, alertPosture:null, repeats:0, lastVibe:0,
+  motorUntil:[0,0,0,0], metrics:{lr:0,fb:0,flr:0,blr:0},
+  today:null, focusUntil:0
+};
+/* hourly record: hours[h] = [sitMs, goodMs] */
+const mkHours=()=>Array.from({length:24},()=>[0,0]);
+const SEED_HOURS=[[9,35,96],[10,50,94],[11,40,90],[13,30,82],[14,43,75]]; // [hour, sit minutes, score]
+const seedHours=()=>{const h=mkHours();SEED_HOURS.forEach(([hr,m,sc])=>{h[hr]=[m*60000,Math.round(m*60000*sc/100)]});return h};
+function ensureHours(T){if(!T.hours)T.hours=T.seed?seedHours():mkHours();return T.hours}
+const emptyToday=()=>({seed:false,sitMs:0,goodMs:0,fixes:0,alerts:0,balSum:0,balN:0,counts:{},heat:new Array(12).fill(0),heatW:0,hours:mkHours()});
+const SEED = ()=>({seed:true,hours:seedHours(), sitMs:(3*60+18)*60000, goodMs:Math.round((3*60+18)*60000*.87), fixes:14, alerts:16, balSum:93*1000, balN:1000,
+  counts:{lean_right:23,leg_cross:11,slouch:9,lean_left:4,forward:3}, heat:SENSORS.map(s=>(s.y<-80?33:s.y<0?60:s.y<80?40:20)*(Math.abs(s.x)>=130?.85:1)*(s.x<0?1.12:.9)), heatW:1});
+state.today = store.get('today', null) || SEED();
+const prefs = Object.assign({popup:true,vib:true,sound:true,duty:40,pulse:500,focus:false}, store.get('prefs',{}));
+CFG = Object.assign(structuredClone(CFG_DEFAULT), store.get('cfg',{}));
+
+/* ============ demo simulator ============ */
+const SCEN = [['good','바른 자세'],['lean_right','오른쪽 기울기'],['lean_left','왼쪽 기울기'],['forward','앞으로 쏠림'],['slouch','허리 굽힘'],['leg_cross','다리 꼬기'],['empty','자리 비움']];
+const AUTO = [['good',7000],['lean_right',8000],['good',6000],['slouch',8000],['good',6000],['leg_cross',8000],['good',6000],['forward',8000],['empty',5000]];
+function basePct(s){let v=s.y<-80?35:s.y<0?60:s.y<80?40:20;if(Math.abs(s.x)>=130)v*=.85;return v}
+function scenarioPct(sc,s){
+  let v=basePct(s);
+  switch(sc){
+    case 'lean_right': v*= s.x<0?1.5:.5; break;
+    case 'lean_left': v*= s.x>0?1.5:.5; break;
+    case 'forward': v*= s.y>0?1.7:(s.y<-80?.35:.85); break;
+    case 'slouch': v*= s.y<-80?2.0:(s.y<0?1:(s.y<80?.6:.4)); break;
+    case 'leg_cross': if(s.y>0) v*= s.x>0?.25:1.2; break;
+    case 'empty': v=2; break;
+  }
+  return v;
+}
+const demoCur=new Array(12).fill(2);
+function demoSample(t){
+  return SENSORS.map((s,i)=>{const target=scenarioPct(state.scenario,s);demoCur[i]+= (target-demoCur[i])*.08;
+    const v=clamp(demoCur[i]+Math.sin(t/900+i)*1.6+(Math.random()-.5)*3,0,100);return Math.round(v*4095/100)});
+}
+
+/* ============ calibration & engine ============ */
+function relative(raw,ch){const b=state.cal.base,r=state.cal.ref;if(b&&r&&r[ch]-b[ch]>50)return clamp((raw-b[ch])/(r[ch]-b[ch])*100,0,100);return raw/4095*100}
+function indexes(v){let L=0,R=0,F=0,B=0,FL=0,FR=0,BL=0,BR=0;SENSORS.forEach((s,i)=>{const x=v[i];if(s.x>0)L+=x;else R+=x;if(s.y>0){F+=x;if(s.x>0)FL+=x;else FR+=x}else{B+=x;if(s.x>0)BL+=x;else BR+=x}});
+  const r=(a,b)=>(a-b)/Math.max(1e-6,a+b);return {avg:(L+R)/12,lr:r(L,R),fb:r(F,B),flr:r(FL,FR),blr:r(BL,BR)}}
+function classify(v){
+  const ix=indexes(v),n=CFG.neutral,d={lr:ix.lr-n.lr,fb:ix.fb-n.fb,flr:ix.flr-n.front_lr,blr:ix.blr-n.back_lr};
+  let p='good';
+  if(ix.avg<CFG.seated_min_avg)p='empty';
+  else if(Math.abs(d.flr)>CFG.cross_threshold&&Math.abs(d.blr)<CFG.cross_back_max)p='leg_cross';
+  else if(d.lr<-CFG.lr_threshold)p='lean_right';
+  else if(d.lr>CFG.lr_threshold)p='lean_left';
+  else if(d.fb>CFG.fb_threshold)p='forward';
+  else if(d.fb<-CFG.fb_threshold)p='slouch';
+  return {p,ix,d,balance:Math.round(100*(1-Math.min(1,Math.abs(d.lr))))};
+}
+
+let lastTick=performance.now();
+function ingest(raw){
+  const now=performance.now(),dt=Math.min(200,now-lastTick);lastTick=now;
+  state.raw=raw;state.lastSampleWall=now;
+  // sensor sanity: nearly every channel pinned at full scale, or a loaded cushion reporting identical values for 3 s
+  state.satN=raw.filter(v=>v>=4090).length>=10?(state.satN||0)+1:0;
+  state.sameN=state.prevRaw&&raw.some(v=>v>200)&&raw.every((v,i)=>v===state.prevRaw[i])?(state.sameN||0)+1:0;state.prevRaw=raw.slice();
+  const fault=state.satN>40?'saturated':state.sameN>60?'frozen':null;
+  if(fault!==state.sensorFault){state.sensorFault=fault;log(fault?'센서 값 이상 감지 · '+(fault==='saturated'?'모든 채널이 최대치':'값이 멈춤')+' · 착석 판정 중단':'센서 값 정상으로 돌아옴')}
+  for(let i=0;i<12;i++){state.rel[i]=relative(raw[i],i);state.smooth[i]+=(state.rel[i]-state.smooth[i])*.3}
+  if(collect){collect.sum.forEach((_,i)=>collect.sum[i]+=raw[i]);collect.n++}
+  const c=classify(state.smooth);state.metrics=c.d;state.balance=c.balance;state.ix=c.ix;
+  const T=state.today;
+  if(c.p!=='empty'){T.sitMs+=dt;if(c.p==='good')T.goodMs+=dt;{const HH=ensureHours(T)[new Date().getHours()];HH[0]+=dt;if(c.p==='good')HH[1]+=dt}T.balSum+=c.balance;T.balN++;
+    const w=dt/1000;T.heat=T.heat.map((h,i)=>(h*T.heatW+state.smooth[i]*w)/(T.heatW+w));T.heatW=Math.min(T.heatW+w,4*3600)}
+  if(c.p!==state.posture){state.posture=c.p;if(c.p==='good'||c.p==='empty'){state.goodSince=now;state.badSince=0}else{state.badSince=now}log('판정 → '+POSTURE[c.p].rank)}
+  // alert logic
+  const bad=c.p!=='good'&&c.p!=='empty';
+  if(profile&&bad&&!state.alertOpen&&state.badSince&&now-state.badSince>=CFG.hold_ms&&now-state.lastAlert>=CFG.cooldown_ms)fireAlert(c.p);
+  if(state.alertOpen){
+    if(bad&&c.p!==state.alertPosture){state.alertPosture=c.p;fillAlert(c.p)}
+    if(bad&&prefs.vib&&state.repeats<CFG.max_repeats&&now-state.lastVibe>=CFG.repeat_ms){state.repeats++;vibrate(c.p,'반복')}
+    if(!bad&&state.goodSince&&now-state.goodSince>=CFG.recover_ms){closeAlert(c.p==='good')}
+  }
+}
+
+/* ============ alerts & vibration ============ */
+function focusOn(){return prefs.focus&&(state.focusUntil<0||state.focusUntil>Date.now())}
+function fireAlert(p){
+  const now=performance.now();state.lastAlert=now;state.alertPosture=p;state.repeats=0;state.today.alerts++;state.today.counts[p]=(state.today.counts[p]||0)+1;
+  log('알림 발생 · '+POSTURE[p].rank+(focusOn()?' · 집중모드':' · 일반 모드'));
+  if(prefs.vib)vibrate(p,'알림');
+  if(prefs.popup&&!focusOn()&&!(typeof studyBlocksPopup==='function'&&studyBlocksPopup())){state.alertOpen=true;$('alert').hidden=false;fillAlert(p);if(!focusOn()&&prefs.sound)beep();
+    try{if(!focusOn()&&navigator.vibrate)navigator.vibrate([120,80,120])}catch(e){}}
+  persist();
+}
+function fillAlert(p){
+  const f=focusOn(),a=$('alert');a.className='alert '+(f?'focus':'normal');
+  $('alertModeName').textContent=f?'집중모드':'일반 모드';$('alertMode').setAttribute('aria-pressed',f);
+  $('alertModeIcon').innerHTML=f?'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>':'<path d="M12 22a2.5 2.5 0 0 0 2.4-2h-4.8a2.5 2.5 0 0 0 2.4 2zm7-6V11a7 7 0 0 0-5.5-6.8V3.5a1.5 1.5 0 0 0-3 0v.7A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/>';
+  $('alertTitle').textContent=POSTURE[p].state;$('alertTip').textContent=POSTURE[p].tip;
+  $('alertIco').innerHTML=customIcons[p]?'<img alt="" src="'+customIcons[p]+'">':'';
+  $('chPop').className='on';$('chPopTxt').textContent='ON';
+  $('chVib').className=prefs.vib?'on':'off';$('chVibTxt').textContent=prefs.vib?'ON':'OFF';
+  $('alertDone').className='cta'+(f?'':' red');$('alertDoneTxt').textContent=f?'자세 바로잡기 완료':'바른 자세로 돌아가 주세요';
+  requestAnimationFrame(sizeAlert);
+}
+// fit the whole alert in one screen: the heatmap takes whatever height is left
+function sizeAlert(){const a=$('alert');if(a.hidden)return;const hb=$('alertHeatWrap');hb.style.width='0px';
+  const kids=[...a.children].filter(e=>e!==hb&&getComputedStyle(e).position!=='absolute');
+  const used=kids.reduce((t,e)=>t+e.offsetHeight,0)+10*kids.length+40;
+  const avail=a.clientHeight-used;hb.style.width=Math.max(90,Math.min(400,a.clientWidth*.9,avail*IMG_W/IMG_H))+'px'}
+function closeAlert(corrected){
+  if(!state.alertOpen)return;state.alertOpen=false;$('alert').hidden=true;
+  if(corrected){state.today.fixes++;toast('바른 자세로 돌아왔어요 · 오늘 '+state.today.fixes+'번째 교정');log('교정 완료')}
+  persist();
+}
+function vibrate(p,why){
+  const targets=CFG.motors[p]||[0,1];const pulse=+prefs.pulse;const duty=targets.length>1?Math.min(prefs.duty,40):Math.min(prefs.duty,50);
+  state.lastVibe=performance.now();
+  $('alertIco').classList.remove('shake');void $('alertIco').offsetWidth;$('alertIco').classList.add('shake');
+  log('진동 '+why+' · '+targets.map(o=>'M'+o+'('+OUT_NAME[o]+')').join('+')+' · '+duty+'% · '+pulse+'ms'+(ble.ready?' → 방석 전송':' (데모 표시)'));
+  motorBus.run({label:'자세 '+why,targets,duty,ms:pulse,count:1,gap:0}).then(r=>{if(r.result==='fail')log('진동 명령 실패 · '+r.code)});
+}
+let customIcons=store.get('icons',{});
+function iconPanel(){$('iconList').innerHTML=Object.keys(CFG_DEFAULT.motors).map(k=>'<div class="irow"><span class="islot">'+(customIcons[k]?'<img alt="" src="'+customIcons[k]+'">':'')+'</span><span class="iname">'+POSTURE[k].rank+'</span><label class="btn ghost ifile">이미지 선택<input type="file" accept="image/*" data-icon="'+k+'"></label>'+(customIcons[k]?'<button type="button" class="btn ghost" data-clear="'+k+'">지우기</button>':'')+'</div>').join('')}
+function loadIcon(k,file){const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas'),S=128,sc=Math.min(S/img.width,S/img.height);c.width=c.height=S;c.getContext('2d').drawImage(img,(S-img.width*sc)/2,(S-img.height*sc)/2,img.width*sc,img.height*sc);customIcons[k]=c.toDataURL('image/png');store.set('icons',customIcons);iconPanel();if(state.alertOpen)fillAlert(state.alertPosture);toast(POSTURE[k].rank+' 아이콘을 넣었어요')};img.src=r.result};r.readAsDataURL(file)}
+let audio;function beep(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();const t=audio.currentTime;[0,.18].forEach((d,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=i?660:880;g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.25,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.15);o.connect(g).connect(audio.destination);o.start(t+d);o.stop(t+d+.16)})}catch(e){}}
+
+/* ============ Web Bluetooth (same NDJSON protocol v2 as the Flutter app) ============ */
+const UUID={svc:'6e12a100-953e-4d62-bc71-843e40670001',cmd:'6e12a101-953e-4d62-bc71-843e40670001',tel:'6e12a102-953e-4d62-bc71-843e40670001',evt:'6e12a103-953e-4d62-bc71-843e40670001'};
+const ble={ready:false,id:0,pending:{},q:Promise.resolve(),buf:{tel:[],evt:[]},hb:null,dev:null,
+  async connect(){
+    if(!navigator.bluetooth)throw new Error('이 브라우저는 Web Bluetooth를 지원하지 않아요. Android 또는 PC의 Chrome에서 열어 주세요.');
+    this.dev=await navigator.bluetooth.requestDevice({filters:[{services:[UUID.svc]}],optionalServices:[UUID.svc]});
+    this.dev.addEventListener('gattserverdisconnected',()=>this.lost());
+    const g=await this.dev.gatt.connect(),s=await g.getPrimaryService(UUID.svc);
+    this.cmdC=await s.getCharacteristic(UUID.cmd);const tel=await s.getCharacteristic(UUID.tel),evt=await s.getCharacteristic(UUID.evt);
+    evt.addEventListener('characteristicvaluechanged',e=>this.feed('evt',e.target.value));tel.addEventListener('characteristicvaluechanged',e=>this.feed('tel',e.target.value));
+    await evt.startNotifications();await tel.startNotifications();
+    const hello=await this.cmd('hello');log('방석 응답 · 펌웨어 '+hello.fw_version+' · 모터 '+(hello.motor_enabled?'사용 가능':'잠김'));
+    const cfg=await this.cmd('get_config');const mask=cfg.config&&cfg.config.active_mask;
+    if(mask!==4095)log('주의 · 활성 센서 '+(mask==null?'?':mask.toString(2).split('').filter(b=>b==='1').length)+'/12개 · 기존 앱 장치 설정에서 12채널을 켜 주세요');
+    await this.cmd('heartbeat');this.hb=setInterval(()=>this.cmd('heartbeat').catch(()=>{}),500);
+    this.ready=true;this.name=this.dev.name||'허리업 방석';
+  },
+  lost(){state.batteryPct=null;state.batteryAt=0;if(this.hb)clearInterval(this.hb);const was=this.ready;this.ready=false;Object.values(this.pending).forEach(p=>p.reject(new Error('연결 끊김')));this.pending={};if(was){log('방석 연결 끊김');state.lost=true;setSource('demo');toast('방석 연결이 끊겼어요 · 위쪽 버튼을 눌러 다시 연결해 보세요')}},
+  feed(ch,dv){const bytes=new Uint8Array(dv.buffer,dv.byteOffset,dv.byteLength),b=this.buf[ch];for(const x of bytes){if(x===10){try{this.onFrame(ch,JSON.parse(new TextDecoder().decode(new Uint8Array(b))))}catch(e){}b.length=0}else if(b.length<1023)b.push(x);else b.length=0}},
+  onFrame(ch,j){
+    // Battery percentage is optional: requires firmware to transmit battery_pct or battery_percent.
+    const bp=j&&((j.battery_pct!==undefined)?j.battery_pct:j.battery_percent);
+    if(typeof bp==='number'&&Number.isFinite(bp)&&bp>=0&&bp<=100){state.batteryPct=Math.round(bp);state.batteryAt=Date.now()}
+    if(ch==='tel'&&j.type==='sample'&&Array.isArray(j.raw)&&j.raw.length===12){if(!j.raw.every(v=>Number.isFinite(v)&&v>=0&&v<=4095)){state.badFrames=(state.badFrames||0)+1;return}if(state.source==='ble')ingest(j.raw);return}
+    if(j.type==='ack'&&j.id!=null&&this.pending[j.id]){const p=this.pending[j.id];delete this.pending[j.id];clearTimeout(p.t);j.ok?p.resolve(j):p.reject(new Error(j.code))}
+    else if(j.type==='state'&&j.reason&&j.reason!=='PERIODIC'&&j.reason!=='SNAPSHOT')log('방석 상태 · '+j.reason);
+  },
+  cmd(op,args={}){const id=++this.id,data=new TextEncoder().encode(JSON.stringify({v:2,id,op,...args})+'\n');
+    const p=new Promise((resolve,reject)=>{this.pending[id]={resolve,reject,t:setTimeout(()=>{delete this.pending[id];reject(new Error('응답 없음 ('+op+')'))},2000)}});
+    this.q=this.q.then(async()=>{for(let i=0;i<data.length;i+=20){const part=data.slice(i,i+20);await (this.cmdC.writeValueWithResponse?this.cmdC.writeValueWithResponse(part):this.cmdC.writeValue(part))}}).catch(e=>{const pp=this.pending[id];if(pp){delete this.pending[id];clearTimeout(pp.t);pp.reject(e)}});
+    return p},
+  async vibrate(targets,duty,ms){await this.cmd('heartbeat');await this.cmd('arm');
+    if(targets.length>1)await this.cmd('motor_pair',{a:targets[0],b:targets[1],duty:Math.min(duty,40),duration_ms:ms,mode:'sync'});
+    else await this.cmd('motor',{ch:targets[0],duty:Math.min(duty,50),duration_ms:ms});},
+  async stop(){if(this.ready){try{await this.cmd('stop_all')}catch(e){}}if(this.dev&&this.dev.gatt.connected)this.dev.gatt.disconnect()}
+};
+
+/* ============ one motor queue for every vibration (posture alert + pomodoro) ============
+   Commands are serialized so two features never ask the firmware for overlapping pulses.
+   A pulse counts as delivered only when every command (heartbeat → arm → motor_pair) is acked ok;
+   the firmware acks motor/motor_pair after the PWM is committed. Demo source never counts as delivered. */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const motorBus={q:Promise.resolve(),
+  run(o){const job=async()=>{const r={label:o.label,count:o.count,sent:0,acked:0,result:'ok',code:null};
+      for(let i=0;i<o.count;i++){
+        if(i)await sleep(o.gap);
+        if(state.source!=='ble'){r.result='demo';const u=performance.now()+o.ms;o.targets.forEach(x=>state.motorUntil[x]=u);await sleep(o.ms);continue}
+        if(!ble.ready){r.result='fail';r.code='NOT_CONNECTED';break}
+        r.sent++;
+        try{await ble.vibrate(o.targets,o.duty,o.ms);r.acked++}catch(e){r.result='fail';r.code=(e&&e.message)||'ERROR';break}
+        const u=performance.now()+o.ms;o.targets.forEach(x=>state.motorUntil[x]=u);
+        await sleep(o.ms);
+      }
+      return r};
+    const p=this.q.then(job,job);this.q=p.catch(()=>{});return p}
+};
+
+async function connectBle(){
+  try{log('Bluetooth 장치 선택 창을 여는 중…');await ble.connect();setSource('ble');toast('허리업 방석이 연결됐어요');log('방석 연결 완료 · 실제 센서 데이터 수신');if(!(state.cal.base&&state.cal.ref))setTimeout(openCalw,900);}
+  catch(e){const msg=(e&&e.name==='SecurityError')||/permission|policy|allowed/i.test(e&&e.message||'')?'이 화면에서는 브라우저가 Bluetooth를 막아요. 데모로 확인하고, 실제 연결은 APK에서 확인해 주세요.':(e&&e.name==='NotFoundError'?'장치 선택이 취소됐어요.':(e.message||String(e)));
+    log('연결 실패 · '+msg);toast(msg.length>36?'연결하지 못했어요 · 로그를 확인해 주세요':msg);setSource('demo')}
+}
+function setSource(s){
+  if(s==='demo'&&ble.ready)ble.stop();
+  state.source=s;if(s==='demo'){state.batteryPct=null;state.batteryAt=0}if(s==='ble')state.lost=false;$('srcDemo').setAttribute('aria-pressed',s==='demo');$('srcBle').setAttribute('aria-pressed',s==='ble');
+  document.querySelectorAll('#scen button').forEach(b=>b.disabled=s!=='demo');$('autoPlay').disabled=s!=='demo';render(true);
+}
+
+/* ============ calibration collection ============ */
+let collect=null;
+function collectFor(kind,done){
+  if(collect){if(done)done(false);return}collect={sum:new Array(12).fill(0),n:0};toast(kind==='neutral'?'바른 자세로 2초간 앉아 주세요':'2초간 측정 중…');
+  setTimeout(()=>{const c=collect;collect=null;if(c.n<10){toast('측정값이 부족해요. 다시 시도해 주세요');if(done)done(false);return}
+    const avg=c.sum.map(x=>x/c.n);
+    if(kind==='base'){state.cal.base=avg;state.cal.ref=null;toast('빈 방석 기준을 저장했어요');}
+    else if(kind==='ref'){if(!state.cal.base){toast('빈 방석 기준을 먼저 저장해 주세요');if(done)done(false);return}state.cal.ref=avg;toast('착석 기준을 저장했어요');}
+    else{const ix=state.ix;CFG.neutral={lr:+ix.lr.toFixed(3),fb:+ix.fb.toFixed(3),front_lr:+ix.flr.toFixed(3),back_lr:+ix.blr.toFixed(3)};store.set('cfg',CFG);showCfg();toast('지금 자세를 바른 자세 기준으로 저장했어요')}
+    log('보정 · '+({base:'빈 방석',ref:'착석',neutral:'바른 자세'})[kind]+' 기준 저장');render(true);if(done)done(true)},2000);
+}
+
+/* ============ rendering ============ */
+const GO=['home','report','study','challenge','prefs'];let screen='home',period='day';
+function show(name){screen=name;GO.forEach(g=>$('scr-'+g).hidden=g!==name);document.querySelectorAll('.nav button').forEach(x=>{if(x.dataset.go===name)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});$('phone').querySelector('#scr-'+name).scrollTop=0;render(true);if(typeof stRender==='function')stRender(true)}
+function scoreOf(T){return T.sitMs<1000?null:Math.round(T.goodMs/T.sitMs*100)}
+function gradeOf(s){return s==null?'—':s>=85?'A등급':s>=70?'B등급':s>=50?'C등급':'D등급'}
+function render(full){
+  const T=state.today,sc=scoreOf(T),d=fmtDur(T.sitMs),bal=T.balN?Math.round(T.balSum/T.balN):null,p=state.posture,isBad=p!=='good'&&p!=='empty';
+  // top pill
+  const conn=state.source==='ble'&&ble.ready,lost=!!state.lost&&!conn;$('connPill').className='pill'+(lost?' lost':'');$('connDot').className='dot '+(conn?'on':lost?'lost':'demo');$('connText').textContent=conn?'방석 연결됨':lost?'연결 끊김 · 다시 연결':'데모 모드';
+  // Never infer battery level from a demo or from sensor ADC values.
+  const batteryValid=conn&&state.batteryPct!==null&&Date.now()-state.batteryAt<120000;
+  $('batteryText').textContent=batteryValid?state.batteryPct+'%':'—';
+  $('batteryBadge').classList.toggle('low',batteryValid&&state.batteryPct<=20);
+  $('batteryBadge').title=batteryValid?'방석 배터리 '+state.batteryPct+'%':conn?'배터리 정보 미수신 · ESP32 펌웨어의 battery_pct 전송이 필요합니다':'실제 방석 연결 시 배터리 정보를 표시합니다';
+  const seated=state.posture!=='empty'&&!(state.source==='ble'&&state.sensorFault);
+  const avg=seated?state.smooth.reduce((a,b)=>a+b,0)/12:0;
+  const peak=seated?Math.max(...state.smooth):0;
+  const relativePct=Math.round(clamp(avg,0,100));
+  $('pressureHome').textContent=seated?relativePct+'%':'착석 대기';
+  $('pressureBar').style.width=(seated?relativePct:0)+'%';
+  $('pressureAvg').textContent=seated?relativePct+'%':'—';
+  $('pressurePeak').textContent=seated?Math.round(peak)+'%':'—';
+  $('pressureBalance').textContent=seated?Math.round(state.balance)+'%':'—';
+  $('pressureSource').textContent=conn?'실제 센서':state.source==='demo'?'데모 값':'측정 대기';
+  $('srcState').textContent=conn?'실제 방석 데이터 수신 중':'데모 시뮬레이터 실행 중';
+  $('devState').textContent=conn?'연결됨':lost?'끊김':'연결 안 됨';$('devDetail').textContent=conn?(ble.name+' · 센서 12채널'):lost?'연결이 끊겼어요 · 지금은 예시 값이 보여요':'데모 데이터로 화면을 보여주는 중';
+  // hero
+  const hero=$('hero');hero.className='card hero'+(isBad?' bad':p==='empty'?' idle':'');
+  $('heroState').textContent=POSTURE[p].state;$('heroSub').textContent=isBad?'지금 바로 균형을 맞춰 보세요.':POSTURE[p].sub;
+  $('heroLab').lastChild.textContent=isBad?'허리업!':'현재 자세';$('heroLab').firstChild.innerHTML=isBad?'<circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M12 6.5v7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.6" fill="#fff"/>':'<circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';$('liveText').textContent=lost?'연결 끊김 · 예시 값 표시 중':p==='empty'?'착석 대기 중':'실시간 모니터링 중';
+  $('tScore').innerHTML=(sc??'—')+'<small>점</small>';$('tShield').textContent=sc==null?'–':gradeOf(sc)[0];
+  $('tSit').innerHTML=(d.h?d.h+'<small>시간</small>':'')+d.m+'<small>분</small>';$('tFix').innerHTML=T.fixes+'<small>회</small>';$('tBal').innerHTML=(bal??'—')+'<small>%</small>';
+  $('helloName').textContent='안녕하세요, '+(profile?profile.name:'')+'님';$('pName').textContent=(profile?profile.name:'')+'님';$('pScore').textContent=sc??'—';
+  $('focusHome').checked=focusOn();$('focusSet').checked=focusOn();$('focusDesc').textContent='팝업 창이 안 떠요'+(focusOn()&&state.focusUntil>0?' · '+Math.ceil((state.focusUntil-Date.now())/60000)+'분 남음':'');
+  // report
+  if(screen==='report'||full){
+    $('rScore').textContent=sc??'—';$('rGrade').textContent=gradeOf(sc);$('rSit').textContent=(d.h?d.h+'시간 ':'')+d.m+'분';$('rFix').textContent=T.fixes+'회';$('rBal').textContent=(bal??'—')+'%';
+    $('rMsg').textContent=sc==null?'앉으면 오늘의 점수를 계산해요.':sc>=85?'좋은 자세를 유지하고 있어요! 👍':sc>=70?'조금만 더 신경 쓰면 A등급이에요.':'자세가 자주 무너지고 있어요. 알림에 맞춰 바로잡아 보세요.';
+    $('seedChip').hidden=!T.seed;$('resetToday').hidden=!T.seed&&T.sitMs<60000;$('optSeed').checked=!!T.seed;renderHours(T);
+    const entries=Object.entries(T.counts).filter(([,n])=>n>0).sort((a,b)=>b[1]-a[1]),tot=entries.reduce((s,[,n])=>s+n,0);
+    $('rank').innerHTML=entries.length?entries.slice(0,3).map(([k,n],i)=>'<li><span class="no">'+(i+1)+'</span><span class="rb"><span class="nm">'+POSTURE[k].rank+'</span><span class="rt"><span class="bar"><i style="width:'+Math.round(n/tot*100)+'%"></i></span><span class="pct">'+Math.round(n/tot*100)+'%</span></span></span></li>').join(''):'<li style="display:block;color:var(--muted);font-size:12.5px">아직 알림이 없어요.</li>';
+    const top=entries[0];$('insight').textContent=top?('오늘은 '+POSTURE[top[0]].why+' 자세가 가장 많았어요. 알림 '+T.alerts+'번 중 '+Math.min(T.fixes,T.alerts)+'번 바로잡았어요.'):'오늘은 아직 자세 알림이 없어요. 지금처럼 유지해 보세요.';
+    $('periodCard').hidden=period==='day';
+    if(period!=='day'){const ex=period==='week'?[['월',82],['화',88],['수',79],['목',91],['금',86],['토',90]]:[['1주',81],['2주',84],['3주',87]];const lab=period==='week'?'오늘':'이번 주';
+      $('periodTitle').textContent=period==='week'?'최근 7일 자세점수':'최근 4주 평균 점수';
+      $('bars').innerHTML=[...ex,[lab,sc??0]].map(([l,v],i,a)=>'<div class="'+(i===a.length-1?'today':'')+'"><b>'+v+'</b><i style="height:'+Math.max(4,v)+'%"></i><span>'+l+'</span></div>').join('')}
+  }
+  // challenge
+  if(screen==='challenge'||full){const hit=sc!=null&&sc>=90;$('goalNow').textContent=hit?5:4;$('goalBar').style.width=(hit?100:80)+'%';$('goalHint').textContent=hit?'이번 주 목표를 달성했어요!':'오늘 90점을 넘기면 달성 · 지금 '+(sc??'—')+'점'}
+  // console
+  const tag=$('postTag');tag.textContent=POSTURE[p].rank;tag.className='tag'+(isBad?' bad':p==='empty'?' idle':'');
+  const held=isBad&&state.badSince?performance.now()-state.badSince:0;$('holdBar').style.width=clamp(held/CFG.hold_ms*100,0,100)+'%';$('holdTxt').textContent='유지 '+(held/1000).toFixed(1)+'초 / '+(CFG.hold_ms/1000).toFixed(1)+'초';
+  const m=state.metrics,MS=[['좌우 (오른쪽 − ↔ + 왼쪽)',m.lr,CFG.lr_threshold],['앞뒤 (뒤 − ↔ + 앞)',m.fb,CFG.fb_threshold],['허벅지 좌우 (다리 꼬기)',m.flr,CFG.cross_threshold],['엉덩이 좌우',m.blr,CFG.cross_back_max]];
+  $('metrics').innerHTML=MS.map(([k,v,th])=>{const pos=clamp((v+1)/2*100,0,100),z0=(1-th)/2*100,zw=th*100;return '<div class="metric"><div class="mk"><span>'+k+'</span><span>±'+th+'</span></div><div class="mv">'+(v>=0?'+':'')+v.toFixed(2)+'</div><div class="gauge"><span class="z" style="left:'+z0+'%;width:'+zw+'%"></span><span class="n" style="left:'+pos+'%"></span></div></div>'}).join('');
+  $('sgrid').innerHTML=SENSORS.map((s,i)=>{const v=state.smooth[i],c=ramp(clamp((v-CFG.heat.min)/(CFG.heat.max-CFG.heat.min),0,1)),light=c[0]*.299+c[1]*.587+c[2]*.114>150;return '<div style="background:rgb('+c.map(Math.round)+');color:'+(light?'#141c33':'#fff')+'"><span style="color:inherit;opacity:.8">S'+s.id+'</span><b>'+Math.round(v)+'</b><span style="color:inherit;opacity:.75;font-size:9.5px">'+sideName(s)+'</span></div>'}).join('');
+  $('calState').textContent=state.cal.base&&state.cal.ref?'보정 완료 · 빈 방석 0% ~ 착석 100% 기준으로 표시 중':state.cal.base?'빈 방석 기준 저장됨 · 착석 기준을 저장해 주세요':'보정 전 · ADC 원시값 비율로 표시 중';
+}
+/* hourly chart (report → 오늘) */
+let hSel=null,hSig='';
+const hourLab=h=>h===0?'오전 12시':h<12?'오전 '+h+'시':h===12?'오후 12시':'오후 '+(h-12)+'시';
+function renderHours(T,force){
+  const card=$('hoursCard');card.hidden=period!=='day';if(card.hidden)return;
+  const H=ensureHours(T);let lo=7,hi=22;
+  H.forEach((v,h)=>{if(v[0]>=60000){lo=Math.min(lo,h);hi=Math.max(hi,h)}});
+  const sig=[lo,hi,hSel,T.seed?1:0,H.map(v=>v[0]>=60000?Math.round(v[0]/60000)+':'+Math.round(v[1]/v[0]*100):'-').join(',')].join('|');
+  if(sig===hSig&&!force)return;hSig=sig;
+  let bars='',axis='';
+  for(let h=lo;h<=hi;h++){const s=H[h][0],g=H[h][1],min=Math.round(s/60000),sc=s>=60000?Math.round(g/s*100):null;
+    const cls=sc==null?'none':sc>=85?'l-good':sc>=70?'l-mid':'l-bad';
+    bars+='<button type="button" data-h="'+h+'" class="'+cls+(h===hSel?' sel':'')+'" aria-label="'+hourLab(h)+' '+(sc==null?'기록 없음':min+'분 앉음, '+sc+'점')+'"><i style="height:'+(sc==null?3:Math.max(8,Math.min(100,min/60*100)))+'%"></i></button>';
+    axis+='<span>'+((h-lo)%3===0?h:'')+'</span>'}
+  const cols='repeat('+(hi-lo+1)+',minmax(0,1fr))';$('hbars').style.gridTemplateColumns=cols;$('haxis').style.gridTemplateColumns=cols;
+  $('hbars').innerHTML=bars;$('haxis').innerHTML=axis;
+  let msg;
+  if(hSel!=null){const s=H[hSel][0],g=H[hSel][1];msg=s>=60000?hourLab(hSel)+' · '+Math.round(s/60000)+'분 앉음 · 자세점수 '+Math.round(g/s*100)+'점':hourLab(hSel)+' · 기록 없음'}
+  else{let worst=null;H.forEach((v,h)=>{if(v[0]>=10*60000){const sc=v[1]/v[0]*100;if(!worst||sc<worst.sc)worst={h,sc}}});
+    msg=worst&&worst.sc<85?'자세가 가장 흐트러진 시간은 '+hourLab(worst.h)+'예요 ('+Math.round(worst.sc)+'점). 막대를 누르면 자세히 볼 수 있어요.':H.some(v=>v[0]>=60000)?'시간대마다 자세가 안정적이에요. 막대를 누르면 자세히 볼 수 있어요.':'앉으면 시간대별 기록이 쌓여요.'}
+  $('hinfo').textContent=msg;$('hoursChip').hidden=!T.seed;
+}
+function frame(){
+  drawHeat($('heatHome'),state.smooth,{labels:false});
+  if(screen==='report')drawHeat($('heatReport'),state.today.heat,{dots:false});
+  if(state.alertOpen)drawHeat($('heatAlert'),state.smooth,{labels:false});
+  requestAnimationFrame(frame);
+}
+function persist(){store.set('today',state.today)}
+
+/* ============ wiring ============ */
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.go)));
+document.querySelectorAll('[data-period]').forEach(b=>b.addEventListener('click',()=>{period=b.dataset.period;document.querySelectorAll('[data-period]').forEach(x=>x.setAttribute('aria-pressed',x===b));render(true)}));
+$('scen').innerHTML=SCEN.map(([k,l])=>'<button type="button" data-sc="'+k+'" aria-pressed="'+(k==='good')+'">'+l+'</button>').join('');
+$('scen').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('autoPlay').checked=false;state.auto=false;setScenario(b.dataset.sc)});
+function setScenario(k){state.scenario=k;document.querySelectorAll('#scen button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sc===k))}
+$('autoPlay').addEventListener('change',e=>{state.auto=e.target.checked;state.autoIdx=0;state.autoT=performance.now();setScenario(AUTO[0][0]);log(state.auto?'시나리오 자동 재생 시작':'자동 재생 중지')});
+$('srcDemo').addEventListener('click',()=>{state.lost=false;setSource('demo')});
+$('srcBle').addEventListener('click',connectBle);$('btnConnect').addEventListener('click',connectBle);$('btnDemo').addEventListener('click',()=>{state.lost=false;setSource('demo');toast('데모 데이터로 보여주고 있어요')});
+$('connPill').addEventListener('click',()=>{if(state.lost&&!(state.source==='ble'&&ble.ready))connectBle();else show('prefs')});
+$('alertClose').addEventListener('click',()=>closeAlert(false));
+$('alertDone').addEventListener('click',()=>closeAlert(state.posture==='good'));
+$('resetToday').addEventListener('click',()=>{state.today=emptyToday();hSel=null;persist();toast('오늘 기록을 초기화했어요');render(true)});
+$('optSeed').addEventListener('change',e=>{state.today=e.target.checked?SEED():emptyToday();hSel=null;persist();toast(e.target.checked?'예시 기록을 넣었어요':'오늘 기록을 0부터 시작해요');render(true)});
+$('hbars').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const h=+b.dataset.h;hSel=hSel===h?null:h;renderHours(state.today,true)});
+/* calibration wizard: three guided steps on top of collectFor() */
+const CALW=[
+  {k:'base',h:'① 빈 방석',b:'방석에서 일어나 빈 상태로 두세요. 준비되면 아래 버튼을 눌러 주세요.',btn:'빈 방석 측정'},
+  {k:'ref',h:'② 평소처럼 앉기',b:'평소 앉는 대로 앉아서 가만히 계세요. 이 값이 100% 기준이 돼요.',btn:'착석 측정'},
+  {k:'neutral',h:'③ 바른 자세 저장',b:'허리를 펴고 양쪽 엉덩이에 체중을 고르게 실어 앉아 주세요.',btn:'바른 자세 저장'}];
+let calwI=0,calwBusy=false;
+function calwDraw(){const done=calwI>=CALW.length,st=CALW[calwI]||{},conn=state.source==='ble'&&ble.ready;
+  $('calwDots').innerHTML=CALW.map((_,i)=>'<i class="'+(i<calwI?'done':i===calwI?'cur':'')+'"></i>').join('');
+  $('calwTitle').textContent=done?'방석 보정':'방석 보정 · '+(calwI+1)+'/'+CALW.length;
+  $('calwHead').textContent=done?'보정 완료':st.h;$('calwBody').textContent=done?'이제 색과 자세 판정이 더 정확해져요.':st.b;
+  $('calwGo').textContent=done?'확인':calwBusy?'측정 중… (2초)':st.btn;$('calwGo').disabled=calwBusy;
+  $('calwNote').textContent=conn?'':'지금은 데모 값이라 연습용이에요. 실제 방석에 연결하면 정확하게 맞춰져요.'}
+function openCalw(){calwI=0;calwBusy=false;$('calw').hidden=false;calwDraw()}
+function closeCalw(){$('calw').hidden=true;calwBusy=false}
+$('calwGo').addEventListener('click',()=>{if(calwI>=CALW.length){closeCalw();return}if(calwBusy)return;calwBusy=true;calwDraw();
+  collectFor(CALW[calwI].k,ok=>{calwBusy=false;if(ok)calwI++;calwDraw()})});
+$('calwLater').addEventListener('click',closeCalw);
+$('calWizard').addEventListener('click',openCalw);
+$('calBase').addEventListener('click',()=>collectFor('base'));$('calRef').addEventListener('click',()=>collectFor('ref'));$('calNeutral').addEventListener('click',()=>collectFor('neutral'));
+function bindPref(id,key,ev='change',get=e=>e.target.checked){$(id).addEventListener(ev,e=>{prefs[key]=get(e);store.set('prefs',prefs);render(true)})}
+bindPref('optPopup','popup');bindPref('optVib','vib');bindPref('optSound','sound');
+$('duty').addEventListener('input',e=>{prefs.duty=+e.target.value;$('dutyVal').textContent=prefs.duty+'%';store.set('prefs',prefs)});
+function setChips(id,val){document.querySelectorAll('#'+id+' button').forEach(b=>b.setAttribute('aria-checked',b.dataset.val===String(val)))}
+$('pulse').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;prefs.pulse=+b.dataset.val;store.set('prefs',prefs);setChips('pulse',prefs.pulse)});
+let focusLen=store.get('focusLen',60);
+let profile=store.get('profile',null);
+function cleanName(v){return v.replace(/\s+/g,' ').trim().slice(0,10)}
+function showOnboard(){$('onboard').hidden=false;$('obName').value='';$('obGo').disabled=true;setTimeout(()=>$('obName').focus(),50)}
+$('obName').addEventListener('input',e=>{const n=cleanName(e.target.value);$('obGo').disabled=!n;$('obHint').textContent=n?('홈 화면에 ‘안녕하세요, '+n+'님’으로 표시돼요.'):'홈 화면에 ‘안녕하세요, ○○님’으로 표시돼요. 최대 10자.'});
+$('onboard').addEventListener('submit',e=>{e.preventDefault();const n=cleanName($('obName').value);if(!n)return;profile={name:n,created:new Date().toISOString()};store.set('profile',profile);$('onboard').hidden=true;show('home');toast(n+'님, 반가워요!');log('프로필 생성 · '+n)});
+$('nameSave').addEventListener('click',()=>{const n=cleanName($('userName').value);if(!n){toast('이름을 입력해 주세요');return}profile=Object.assign(profile||{},{name:n});store.set('profile',profile);$('userName').value='';toast('이름을 '+n+'(으)로 바꿨어요');render(true)});
+$('logout').addEventListener('click',()=>{profile=null;try{localStorage.removeItem('huriup.profile')}catch(e){}closeAlert(false);showOnboard()});
+function setFocus(min){if(min===0){prefs.focus=false;state.focusUntil=0}else{prefs.focus=true;state.focusUntil=min<0?-1:Date.now()+min*60000}store.set('prefs',prefs);if(min!==0){focusLen=min;store.set('focusLen',min)}setChips('focusDur',focusLen);log(min===0?'집중모드 끔 · 일반 모드':'집중모드 켬 · 진동만 알림');if(min!==0&&state.alertOpen)closeAlert(false);else if(state.alertOpen)fillAlert(state.alertPosture);render(true)}
+$('focusHome').addEventListener('change',e=>setFocus(e.target.checked?focusLen:0));
+$('focusSet').addEventListener('change',e=>setFocus(e.target.checked?focusLen:0));
+$('alertMode').addEventListener('click',()=>{setFocus(focusOn()?0:60);toast(focusOn()?'집중모드 · 이제 팝업 없이 진동으로만 알려요':'일반 모드로 바꿨어요');});
+$('focusDur').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;focusLen=+b.dataset.val;store.set('focusLen',focusLen);setChips('focusDur',focusLen);if(focusOn())setFocus(focusLen)});
+$('btnTestVib').addEventListener('click',()=>vibrate('lean_right','테스트'));
+$('btnTestAlert').addEventListener('click',()=>{if(focusOn()){toast('집중모드에서는 팝업이 뜨지 않아요');}state.lastAlert=-1e9;fireAlert(state.posture!=='good'&&state.posture!=='empty'?state.posture:'lean_right');show('home')});
+function showCfg(){$('cfgText').value=JSON.stringify(CFG,null,2)}
+$('cfgApply').addEventListener('click',()=>{try{const j=JSON.parse($('cfgText').value);['hold_ms','lr_threshold','fb_threshold','seated_min_avg'].forEach(k=>{if(typeof j[k]!=='number')throw new Error(k+' 값은 숫자여야 해요')});
+  for(const [k,v] of Object.entries(j.motors||{})){if(!Array.isArray(v)||!v.length||v.length>2||v.some(o=>![0,1,2,3].includes(o)))throw new Error('motors.'+k+'는 모터 번호 1~2개(0~3)여야 해요')}
+  CFG=Object.assign(structuredClone(CFG_DEFAULT),j);store.set('cfg',CFG);$('cfgMsg').className='ok';$('cfgMsg').textContent='적용했어요. 판정과 히트맵에 바로 반영됩니다.';log('판정 설정 적용')}catch(e){$('cfgMsg').className='err';$('cfgMsg').textContent='적용하지 못했어요 · '+e.message}});
+$('cfgReset').addEventListener('click',()=>{CFG=structuredClone(CFG_DEFAULT);store.set('cfg',CFG);showCfg();$('cfgMsg').className='ok';$('cfgMsg').textContent='기본값으로 되돌렸어요.'});
+$('cfgCopy').addEventListener('click',()=>{const t=$('cfgText');navigator.clipboard.writeText(t.value).then(()=>{$('cfgMsg').className='ok';$('cfgMsg').textContent='복사했어요. 저에게 붙여 주시면 APK 기본값으로 넣을게요.'}).catch(()=>{t.select();$('cfgMsg').className='small';$('cfgMsg').textContent='자동 복사가 막혀 있어요. 선택된 텍스트를 직접 복사해 주세요.'})});
+
+// challenge (example data)
+const FLAME='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>';
+$('days').innerHTML=Array.from({length:7},(_,i)=>'<div><span>'+(i+1)+'일차</span><i>'+FLAME+'</i></div>').join('');
+const LAUREL='<g fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".95"><path d="M17 30c-1 8 3 15 10 18"/><path d="M47 30c1 8-3 15-10 18"/></g><g fill="#fff" opacity=".95"><ellipse cx="17.5" cy="34" rx="1.6" ry="3" transform="rotate(-20 17.5 34)"/><ellipse cx="19" cy="40" rx="1.6" ry="3" transform="rotate(-40 19 40)"/><ellipse cx="22.5" cy="45" rx="1.6" ry="3" transform="rotate(-60 22.5 45)"/><ellipse cx="46.5" cy="34" rx="1.6" ry="3" transform="rotate(20 46.5 34)"/><ellipse cx="45" cy="40" rx="1.6" ry="3" transform="rotate(40 45 40)"/><ellipse cx="41.5" cy="45" rx="1.6" ry="3" transform="rotate(60 41.5 45)"/></g>';
+function hexBadge(id,c1,c2,rim,inner,extra=''){return '<svg viewBox="0 0 64 68"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient><linearGradient id="'+id+'r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="'+rim+'"/></linearGradient></defs><path d="M32 1.5l29 16.2v32.6L32 66.5 3 50.3V17.7z" fill="url(#'+id+'r)"/><path d="M32 6l25 14v28L32 62 7 48V20z" fill="url(#'+id+')"/><path d="M32 6l25 14v6C42 22 22 22 7 26v-6z" fill="#fff" opacity=".12"/>'+inner+'</svg>'+extra}
+$('badges').innerHTML=[
+  [hexBadge('b90','#3f86ff','#1342c9','#c9d6f2','<text x="32" y="38" text-anchor="middle" font-size="21" font-weight="900" fill="#fff" font-family="Barlow Semi Condensed,Arial,sans-serif">90</text><path d="M1 42h62l-4 5 4 5H1l4-5z" fill="#2563f0"/><path d="M1 42h62l-4 5 4 5H1l4-5z" fill="none" stroke="#fff" stroke-opacity=".35"/><rect x="17" y="44" width="30" height="5.5" rx="1.5" fill="#f2cf62"/>'),'첫 90점'],
+  [hexBadge('b7','#2e72f5','#0d38b0','#c9d6f2',LAUREL+'<text x="32" y="42" text-anchor="middle" font-size="25" font-weight="900" fill="#fff" font-family="Barlow Semi Condensed,Arial,sans-serif">7</text><path d="M32 47l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#f2cf62"/>'),'7일 연속'],
+  [hexBadge('b100','#a7bdf0','#6a87cf','#dde5f6',LAUREL+'<circle cx="32" cy="35" r="11" fill="none" stroke="#fff" stroke-width="3"/><path d="M32 29v7l4.5 2.8" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>'),'100시간 바른 자세']
+].map(([svg,l])=>'<div>'+svg+'<span>'+l+'</span></div>').join('');
+$('nextBadge').innerHTML=hexBadge('b30','#8e9bb6','#4f5d7d','#dfe4ee','<rect x="18" y="22" width="28" height="26" rx="4" fill="#fff"/><rect x="18" y="22" width="28" height="7" rx="3" fill="#dfe5f1"/><path d="M24 19v6M40 19v6" stroke="#fff" stroke-width="3" stroke-linecap="round"/><text x="32" y="44" text-anchor="middle" font-size="14" font-weight="900" fill="#3b4763" font-family="Barlow Semi Condensed,Arial,sans-serif">30</text>');
+$('badgeAll').addEventListener('click',()=>toast('전체 배지 화면은 다음 단계에서 만들어요'));
+$('todayChallenge').addEventListener('click',()=>{const sc=scoreOf(state.today);toast(sc==null?'오늘의 챌린지: 90점 이상 유지하기':(sc>=90?'오늘의 챌린지 달성! ('+sc+'점)':'오늘의 챌린지: 90점 이상 · 지금 '+sc+'점'))});
+
+// init
+$('optPopup').checked=prefs.popup;$('optVib').checked=prefs.vib;$('optSound').checked=prefs.sound;$('duty').value=prefs.duty;$('dutyVal').textContent=prefs.duty+'%';setChips('pulse',prefs.pulse);setChips('focusDur',focusLen);if(!profile)showOnboard();
+if(prefs.focus){state.focusUntil=-1}
+showCfg();setSource('demo');iconPanel();
+$('iconList').addEventListener('change',e=>{const k=e.target.dataset.icon;if(k&&e.target.files[0])loadIcon(k,e.target.files[0])});
+$('iconList').addEventListener('click',e=>{const k=e.target.dataset&&e.target.dataset.clear;if(!k)return;delete customIcons[k];store.set('icons',customIcons);iconPanel();if(state.alertOpen)fillAlert(state.alertPosture)});
+// warm-start demo values so the first frame already shows a seated heatmap
+SENSORS.forEach((s,i)=>{demoCur[i]=scenarioPct('good',s);state.smooth[i]=demoCur[i]});
+log('허리업 웹 프로토타입 시작 · 데모 시뮬레이터');
+setInterval(()=>{const now=performance.now();
+  if(state.auto&&state.source==='demo'&&now-state.autoT>AUTO[state.autoIdx][1]){state.autoIdx=(state.autoIdx+1)%AUTO.length;state.autoT=now;setScenario(AUTO[state.autoIdx][0])}
+  if(state.focusUntil>0&&state.focusUntil<Date.now())setFocus(0);
+  if(state.source==='demo')ingest(demoSample(now));
+},50);
+setInterval(()=>{render();persist()},250);
+render(true);requestAnimationFrame(frame);
+window.addEventListener('resize',()=>{render(true);sizeAlert()});
+// slim overlay scrollbar: appears while a box inside the phone scrolls, fades out 0.7 s after scrolling stops
+(()=>{const phone=document.querySelector('.phone'),th=document.createElement('i');th.className='sbthumb';th.setAttribute('aria-hidden','true');phone.appendChild(th);let t=null;
+  document.addEventListener('scroll',e=>{const el=e.target;if(!el||!el.getBoundingClientRect||!phone.contains(el))return;
+    const ch=el.clientHeight,sh=el.scrollHeight;if(sh<=ch+1)return;
+    const pr=phone.getBoundingClientRect(),r=el.getBoundingClientRect(),pad=6,track=ch-pad*2,h=Math.max(28,track*ch/sh),y=r.top-pr.top+pad+(track-h)*(el.scrollTop/(sh-ch));
+    th.style.height=h+'px';th.style.transform='translateY('+y+'px)';th.style.right=(pr.right-r.right+3)+'px';th.classList.add('on');
+    clearTimeout(t);t=setTimeout(()=>th.classList.remove('on'),700)},true)})();
+document.documentElement.style.setProperty('--navh',document.querySelector('.nav').offsetHeight+'px');
+</script>
+<script>
+"use strict";
+/* ================= 순공 모드 =================
+   Timer = wall-clock segments [start,end]; never accumulated by setInterval.
+   Seat input comes from seatStatus(), the single place that knows demo vs. real sensor. */
+const SK={sessions:'study.sessions',active:'study.active',prefs:'study.prefs',badges:'study.badges',offset:'study.offset',goalDay:'study.goalDay'};
+const stPrefs=Object.assign({pomodoro:false,pomo:{focusMin:25,breakMin:5},pauses:{1:true,5:true,10:true},graceSec:20,goalMin:120},store.get(SK.prefs,{}));
+let stSessions=store.get(SK.sessions,[]);
+let stActive=store.get(SK.active,null);
+let stEarned=store.get(SK.badges,{});
+let clockOffset=store.get(SK.offset,0);           // test clock only (console)
+let testDisconnect=false;
+const stNow=()=>Date.now()+clockOffset;
+let stOn=false, stPhase='idle', cdTimers=[], lastSave=0, celebrateQ=[], calMonth=null, calSel=null, chTab='posture';
+const saveStudy=()=>{store.set(SK.sessions,stSessions);store.set(SK.active,stActive);store.set(SK.prefs,stPrefs);store.set(SK.badges,stEarned)};
+/* 뽀모도로 state lives next to 순공 state: its focus segments ARE study time, so they are counted once, here. */
+const PK={prefs:'pomo.prefs',active:'pomo.active',sessions:'pomo.sessions'};
+const pmPrefs=Object.assign({focus:25,short:5,long:15,every:4,vib:true,logBreakAway:false},store.get(PK.prefs,{}));
+let pmSessions=store.get(PK.sessions,[]);
+let pmActive=store.get(PK.active,null);
+let pmLastSave=0,pmToggleAt=0,pmLastPhase=null;
+const savePomo=()=>{store.set(PK.prefs,pmPrefs);store.set(PK.sessions,pmSessions);store.set(PK.active,pmActive)};
+stPrefs.pomodoro=false;
+
+/* ---- seat sensor interface ---- */
+function seatStatus(){
+  if(state.source==='ble'){if(!ble.ready||performance.now()-(state.lastSampleWall||0)>2000||state.sensorFault)return 'disconnected'}
+  else if(testDisconnect)return 'disconnected';
+  return state.posture==='empty'?'away':'seated';
+}
+const seatVirtual=()=>state.source!=='ble';
+// debounce: a change must hold 0.8 s (1.5 s for a lost sensor) before the timers react to it
+const seatF={cur:null,cand:null,since:0};
+function seatFiltered(){const raw=seatStatus(),t=performance.now();
+  if(seatF.cur===null)seatF.cur=raw;
+  if(raw===seatF.cur){seatF.cand=null;return raw}
+  if(raw!==seatF.cand){seatF.cand=raw;seatF.since=t}
+  if(t-seatF.since>=(raw==='disconnected'?1500:800)){seatF.cur=raw;seatF.cand=null}
+  return seatF.cur}
+const SEAT_KO={SEATED:'착석',NOT_SEATED:'미착석',TEMPORARILY_AWAY:'잠시 자리 비움',AWAY:'자리 비움',SENSOR_DISCONNECTED:'센서 연결 끊김'};
+function seatStateName(seat){const P=pmActive,A=stActive;
+  if(seat==='disconnected')return 'SENSOR_DISCONNECTED';if(seat==='seated')return 'SEATED';
+  if((P&&P.phase==='FOCUS'&&P.graceStart!=null)||(A&&A.phase==='grace'))return 'TEMPORARILY_AWAY';
+  if(P&&P.phase==='FOCUS_PAUSED'&&P.pauseReason==='away')return 'AWAY';
+  return 'NOT_SEATED'}
+function studyBlocksPopup(){return stOn||!!stActive||!!pmActive}
+
+/* ---- time helpers ---- */
+const pad2=n=>String(n).padStart(2,'0');
+function hms(ms){const s=Math.max(0,Math.floor(ms/1000));return pad2(Math.floor(s/3600))+':'+pad2(Math.floor(s/60)%60)+':'+pad2(s%60)}
+function mmss(ms){const s=Math.max(0,Math.ceil(ms/1000));return pad2(Math.floor(s/60))+':'+pad2(s%60)}
+function hm(ms){const m=Math.floor(ms/60000),h=Math.floor(m/60);return h?(h+'시간'+(m%60?' '+(m%60)+'분':'')):(m%60)+'분'}
+function dayKey(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
+function dayStart(ms){const d=new Date(ms);return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()}
+const addDays=(ms,n)=>{const d=new Date(ms);return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n).getTime()};
+function segMs(s,upTo){return s.segments.reduce((t,[a,b])=>t+((b??upTo)-a),0)}
+function openSeg(A,t){const l=A.segments[A.segments.length-1];if(!l||l[1]!==null)A.segments.push([t,null])}
+function closeSeg(A,t){const l=A.segments[A.segments.length-1];if(l&&l[1]===null)l[1]=Math.max(l[0],t)}
+
+/* ---- aggregation: every number comes from the same session records ---- */
+const pmAsStudy=s=>({id:s.id,startAt:s.startAt,segments:s.segments});
+function allSessions(){const a=[...stSessions];if(stActive)a.push(stActive);
+  for(const s of pmSessions)a.push(pmAsStudy(s));if(pmActive)a.push(pmAsStudy(pmActive));return a}
+function dayTotals(){
+  const ms={},rec={},now=stNow();
+  for(const s of allSessions()){rec[dayKey(s.startAt)]=1;
+    for(const [a,b0] of s.segments){const b=b0??now;let x=a;while(x<b){const e=Math.min(b,addDays(x,1));const k=dayKey(x);ms[k]=(ms[k]||0)+(e-x);rec[k]=1;x=e}}}
+  return {ms,rec};
+}
+function sumRange(ms,from,toExcl){let t=0;for(let d=from;d<toExcl;d=addDays(d,1))t+=ms[dayKey(d)]||0;return t}
+function streak(test){const {ms}=dayTotals();let best=0,cur=0,days=Object.keys(ms).sort();if(!days.length)return 0;
+  let d=dayStart(new Date(days[0]+'T00:00').getTime());const end=dayStart(stNow());
+  for(;d<=end;d=addDays(d,1)){if(test(ms[dayKey(d)]||0)){cur++;best=Math.max(best,cur)}else cur=0}return best}
+const goalMs=()=>stPrefs.goalMin*60000;
+function badgeData(){const {ms}=dayTotals(),now=stNow(),pms=pmActive?[...pmSessions,pmActive]:pmSessions;
+  return {pmDone:pms.reduce((t,s)=>t+(s.completedFocus??s.rounds??0),0),pmCycles:pms.reduce((t,s)=>t+(s.cycles||0),0),pmTotal:pms.reduce((t,s)=>t+segMs(s,now),0),total:Object.values(ms).reduce((a,b)=>a+b,0),maxDay:Math.max(0,...Object.values(ms)),maxSession:Math.max(0,...allSessions().map(s=>segMs(s,now))),
+    streakRec:streak(v=>v>=60000),streakGoal:streak(v=>v>=goalMs())}}
+const ST_BADGES=[
+  {id:'first',name:'첫걸음',cond:'최초 순공 30분 달성',g:'30',c:['#3f86ff','#1342c9'],t:d=>d.total>=30*60000},
+  {id:'start',name:'집중의 시작',cond:'하루 순공 2시간 달성',g:'2h',c:['#2e72f5','#0d38b0'],t:d=>d.maxDay>=2*3600000},
+  {id:'steady',name:'꾸준함',cond:'3일 연속 순공 기록',g:'3',c:['#3aa0ff','#1559d6'],t:d=>d.streakRec>=3},
+  {id:'deep',name:'몰입의 달인',cond:'1회 순공 세션 2시간 달성',g:'2h',c:['#5a6cff','#2b2fc4'],t:d=>d.maxSession>=2*3600000},
+  {id:'habit',name:'습관 형성',cond:'7일 연속 일일 목표 달성',g:'7',c:['#18a874','#0b7350'],t:d=>d.streakGoal>=7},
+  {id:'hundred',name:'백 시간의 노력',cond:'누적 순공 100시간 달성',g:'100',c:['#f0a52b','#c06b06'],t:d=>d.total>=100*3600000},
+  {id:'pm1',name:'첫 뽀모도로',cond:'뽀모도로 집중 1회 완료',g:'1',c:['#ff7a59','#d6402a'],t:d=>d.pmDone>=1},
+  {id:'pm10',name:'열 번의 집중',cond:'뽀모도로 집중 10회 완료',g:'10',c:['#ff8f4a','#cc4f12'],t:d=>d.pmDone>=10},
+  {id:'pmcycle',name:'한 바퀴 완주',cond:'긴 휴식까지 1사이클 완료',g:'C',c:['#e8607a','#b02a4b'],t:d=>d.pmCycles>=1},
+  {id:'pm10h',name:'깊은 몰입',cond:'뽀모도로 누적 집중 10시간',g:'10h',c:['#9a62f0','#5a2bbf'],t:d=>d.pmTotal>=10*3600000}];
+function badgeSvg(b,uid){return hexBadge('sb'+b.id+uid,b.c[0],b.c[1],'#d6e0f5','<text x="32" y="'+(b.g.length>2?41:42)+'" text-anchor="middle" font-size="'+(b.g.length>2?18:22)+'" font-weight="900" fill="#fff" font-family="Barlow Semi Condensed,Arial,sans-serif">'+b.g+'</text>')}
+function checkBadges(){const d=badgeData();let changed=false;
+  for(const b of ST_BADGES)if(!stEarned[b.id]&&b.t(d)){stEarned[b.id]=stNow();changed=true;celebrateQ.push(b);log('순공 배지 획득 · '+b.name)}
+  if(changed){saveStudy();nextCelebrate()}}
+let celebrating=false;
+function nextCelebrate(){if(celebrating||!celebrateQ.length)return;const b=celebrateQ.shift();celebrating=true;
+  $('bceleSvg').innerHTML=badgeSvg(b,'c');$('bceleName').textContent=b.name;$('bceleCond').textContent=b.cond;const el=$('bcele');
+  el.querySelectorAll('i').forEach(x=>x.remove());const cols=['#1f5cf5','#ffd24a','#2fd0d6','#ff7a59','#62d877'];
+  for(let k=0;k<26;k++){const i=document.createElement('i');i.style.left=(Math.random()*100)+'%';i.style.background=cols[k%5];i.style.animationDelay=(Math.random()*.6)+'s';el.appendChild(i)}
+  el.hidden=false;const done=()=>{el.hidden=true;celebrating=false;nextCelebrate()};el.onclick=done;setTimeout(()=>{if(!el.hidden)done()},2800)}
+
+/* ---- session lifecycle ---- */
+function stSetOn(on){
+  if(on){if(stActive||stOn||pmActive)return;stOn=true;const seat=seatFiltered();
+    if(seat==='seated')startCountdown();else stPhase=seat==='disconnected'?'nosensor':'waiting';log('순공 모드 켬 · '+(seat==='seated'?'카운트다운':'착석 대기'))}
+  else{if(pmActive){pmEnd('study_off');stOn=false;stPhase='idle'}
+    else if(stActive)stEnd('user');else{stOn=false;stPhase='idle';cancelCountdown();log('순공 모드 끔')}}
+  stRender(true)}
+// one overlay for both countdowns: start (white) and away-grace (red)
+let cdMode=null,cdDigit=null,cdHideT=null;
+function cdShow(mode,text,sub){const box=$('cdown');clearTimeout(cdHideT);box.classList.remove('out');box.classList.toggle('red',mode==='grace');
+  $('cdTxt').textContent=text;$('cdSub').textContent=sub||'';if(box.hidden){$('cdNum').textContent='';cdDigit=null}box.hidden=false;cdMode=mode}
+function cdSetNum(v){if(cdDigit===v)return;cdDigit=v;const num=$('cdNum');num.textContent=v;num.classList.remove('pop');void num.offsetWidth;num.classList.add('pop')}
+function cdHide(instant){const box=$('cdown');cdMode=null;cdDigit=null;if(box.hidden)return;
+  const done=()=>{box.hidden=true;box.classList.remove('out','red');$('cdNum').textContent='';$('cdSub').textContent=''};
+  if(instant){clearTimeout(cdHideT);done();return}
+  if(box.classList.contains('out'))return;box.classList.add('out');cdHideT=setTimeout(done,520)}
+function runCountdown(text,done){cdTimers.forEach(clearTimeout);cdTimers=[];cdShow('start',text);
+  [[650,'3'],[1550,'2'],[2450,'1']].forEach(([t,v])=>cdTimers.push(setTimeout(()=>cdSetNum(v),t)));
+  cdTimers.push(setTimeout(()=>{cdTimers=[];done();cdHide()},3350))}
+function startCountdown(){stPhase='countdown';runCountdown('공부 시작',beginSession)}
+function cancelCountdown(){cdTimers.forEach(clearTimeout);cdTimers=[];if(cdMode==='start')cdHide(true)}
+function beginSession(){if(stActive||!stOn)return;const now=stNow();
+  stActive={id:'S'+now.toString(36)+Math.random().toString(36).slice(2,6),startAt:now,segments:[[now,null]],pauseCount:0,pauseMs:0,pause:null,phase:'running',graceStart:null,lastSeen:now,virtual:seatVirtual(),sensor:!seatVirtual(),sensorErrors:0,pomodoro:stPrefs.pomodoro};
+  stPhase='running';saveStudy();log('순공 시작 · 세션 '+stActive.id);stRender(true)}
+function stPause(min){const A=stActive;if(!A||!['running','grace'].includes(A.phase))return;const now=stNow();closeSeg(A,now);
+  A.phase='paused';A.graceStart=null;A.pause={start:now,until:now+min*60000};A.pauseCount++;stPhase='paused';saveStudy();$('stPick').hidden=true;log('일시정지 '+min+'분');stRender(true)}
+function stResumeNow(){const A=stActive;if(!A||A.phase!=='paused')return;const now=stNow();A.pauseMs+=now-A.pause.start;A.pause=null;
+  if(seatStatus()==='seated'){openSeg(A,now);A.phase='running'}else{A.phase='grace';A.graceStart=now}stPhase=A.phase;saveStudy();stRender(true)}
+function stEnd(reason,endAt,quiet){const A=stActive;if(!A)return;endAt=endAt??stNow();closeSeg(A,endAt);
+  if(A.pause){A.pauseMs+=Math.max(0,Math.min(endAt,A.pause.until)-A.pause.start);A.pause=null}
+  const rec={id:A.id,startAt:A.startAt,endAt,elapsedMs:endAt-A.startAt,studyMs:segMs(A,endAt),pauseCount:A.pauseCount,pauseMs:A.pauseMs,
+    endReason:reason,seatData:A.sensor&&A.virtual?'mixed':A.sensor?'sensor':'virtual',sensorErrors:A.sensorErrors,segments:A.segments,pomodoro:A.pomodoro};
+  if(!stSessions.some(s=>s.id===rec.id))stSessions.push(rec);
+  stActive=null;stOn=false;stPhase='idle';$('stPick').hidden=true;saveStudy();
+  log('순공 종료 · '+({away:'자리비움 자동 종료',pomodoro:'뽀모도로로 전환'}[reason]||'사용자 종료')+' · '+hm(rec.studyMs));if(!quiet)showReport(rec);checkBadges();stRender(true)}
+
+function stTick(){
+  const now=stNow(),seat=seatFiltered(),graceMs=stPrefs.graceSec*1000;
+  if(pmActive)pmTick(now,seat);
+  if(stOn&&!stActive&&!pmActive){
+    if(stPhase==='waiting'&&seat==='seated'&&$('srep').hidden&&!celebrating)startCountdown();
+    else if(stPhase==='waiting'&&seat==='disconnected')stPhase='nosensor';
+    else if(stPhase==='nosensor'&&seat!=='disconnected'){if(seat==='seated')startCountdown();else stPhase='waiting'}
+  }
+  const A=stActive;
+  if(A){
+    if(seat==='seated'){if(seatVirtual())A.virtual=true;else A.sensor=true}
+    switch(A.phase){
+      case 'running':if(seat==='away'){closeSeg(A,now);A.phase='grace';A.graceStart=now;log('자리 비움 감지 · '+stPrefs.graceSec+'초 유예')}
+        else if(seat==='disconnected'){closeSeg(A,now);A.phase='error';A.sensorErrors++;log('센서 연결 끊김 · 측정 중단')}break;
+      case 'grace':if(seat==='seated'){openSeg(A,now);A.phase='running';A.graceStart=null;log('다시 착석 · 순공 이어서 측정')}
+        else if(seat==='disconnected'){A.phase='error';A.sensorErrors++;log('센서 연결 끊김 · 측정 중단')}
+        else if(now-A.graceStart>=graceMs){stEnd('away',now);return}break;
+      case 'paused':if(now>=A.pause.until){A.pauseMs+=A.pause.until-A.pause.start;A.pause=null;
+          if(seat==='seated'){openSeg(A,now);A.phase='running';log('휴식 끝 · 착석 확인, 순공 재개')}else{A.phase='grace';A.graceStart=now;log('휴식 끝 · 착석이 확인되지 않아 대기')}}break;
+      case 'error':if(seat==='seated'){openSeg(A,now);A.phase='running';log('센서 재연결 · 순공 재개')}else if(seat==='away'){A.phase='grace';A.graceStart=now}break;
+    }
+    if(!stActive)return;A.lastSeen=now;stPhase=A.phase;
+    if(now-lastSave>1000){lastSave=now;store.set(SK.active,stActive)}
+    const today=dayTotals().ms[dayKey(now)]||0;
+    if(today>=goalMs()&&store.get(SK.goalDay,'')!==dayKey(now)){store.set(SK.goalDay,dayKey(now));toast('오늘 순공 목표를 달성했어요! '+hm(goalMs()));log('일일 순공 목표 달성')}
+    if(Math.floor(now/5000)!==Math.floor((now-250)/5000))checkBadges();
+  }
+  stRender();
+}
+
+/* ---- rendering ---- */
+function stRender(full){
+  const now=stNow(),A=stActive,{ms,rec}=dayTotals(),todayMs=ms[dayKey(now)]||0,rate=Math.min(999,Math.round(todayMs/goalMs()*100));
+  const P=pmActive,pmGrace=P&&P.phase==='FOCUS'&&P.graceStart!=null;
+  const graceLeft=pmGrace?stPrefs.graceSec*1000-(now-P.graceStart):A&&A.phase==='grace'&&A.graceStart?stPrefs.graceSec*1000-(now-A.graceStart):Infinity;
+  if(graceLeft<=5000){if(cdMode!=='grace')cdShow('grace',pmGrace?'방석에 다시 착석해 주세요':'자리를 비웠어요',pmGrace?'다시 앉으면 집중이 이어져요':'다시 앉으면 순공이 이어져요');cdSetNum(String(Math.max(1,Math.ceil(graceLeft/1000))))}
+  else if(cdMode==='grace')cdHide();
+  const vis=screen==='study';
+  if(vis||full){
+    $('stOn').checked=stOn||!!A||!!P;$('stPomo').checked=!!P;
+    const t=A?segMs(A,now):0;$('stClock').textContent=hms(t);$('stClock').classList.toggle('on',stPhase==='running');
+    const seat=seatFiltered(),sn=seatStateName(seat);
+    $('stSeat').textContent=SEAT_KO[sn];$('stSeat').className='stchip seat'+(sn==='SEATED'?' ok':sn==='NOT_SEATED'?'':' bad');$('stSeat').hidden=!(stOn||A||P);
+    const S={idle:['꺼짐','','순공 모드를 켜면 측정을 시작해요'],waiting:['착석 대기','warn','방석에 앉으면 3초 뒤 공부를 시작해요'],nosensor:['센서 연결 끊김','err','방석 연결을 확인해 주세요. 연결되면 시작할 수 있어요'],
+      countdown:['시작 준비','pause','곧 순공 측정을 시작해요'],running:['측정 중','run','앉아 있는 동안만 순공 시간이 쌓여요'],
+      grace:['자리 비움 확인 중',graceLeft<=10000?'err':'warn',A&&A.graceStart?Math.max(0,Math.ceil(graceLeft/1000))+'초 안에 다시 앉으면 이어서 측정해요':''],
+      paused:['일시정지','pause','휴식 시간은 순공 시간에 포함되지 않아요'],error:['측정 오류','err','센서 연결이 끊겨 측정을 멈췄어요. 이 시간은 기록되지 않아요']}[stPhase]||['','',''];
+    $('stState').textContent=S[0];$('stState').className='stchip'+(S[1]?' '+S[1]:'');$('stSub').textContent=S[2];$('stSub').classList.toggle('urgent',stPhase==='grace'&&graceLeft<=10000);
+    $('stSrc').textContent=state.source==='ble'?(seat==='disconnected'?'방석 센서 · 연결 끊김':'방석 센서'):(testDisconnect?'가상 착석 · 연결 끊김(테스트)':'가상 착석 데이터');
+    $('stToday').textContent=hm(todayMs);$('stGoal').textContent=hm(goalMs());$('stRate').textContent=rate+'%';$('stRateBar').style.width=Math.min(100,rate)+'%';$('stGoalBox').classList.toggle('done',rate>=100);
+    const live=A&&['running','grace'].includes(A.phase);
+    $('stStop').hidden=!live||!$('stPick').hidden;
+    $('stPauseInfo').hidden=!(A&&A.phase==='paused');if(A&&A.pause)$('stPauseLeft').textContent=mmss(A.pause.until-now);
+    $('stEnd3').hidden=!(A&&A.phase==='error');
+    $('stTtl').textContent='순공 시간';$('stState').hidden=false;
+    pmRenderTimer(now,seat,graceLeft);
+    $('stOnTxt').textContent=P?'켜져 있어요 · 끄면 뽀모도로와 순공을 모두 종료해요':A?'켜져 있어요 · 끄면 공부를 종료하고 기록해요':stOn?'켜져 있어요 · 방석에 앉으면 시작해요':'켜면 방석에 앉는 순간 공부를 시작해요';
+  }
+  if((screen==='challenge'&&chTab==='study')||full)renderStudyChallenge(ms,rec,todayMs,rate);
+  if(full||screen==='prefs'){['1','5','10'].forEach(m=>$('stP'+m).checked=!!stPrefs.pauses[m]);setChips('stGrace',stPrefs.graceSec);pmRenderPrefs()}
+  if(full||screen==='report')pmRenderReportCard(ms,now);
+  $('stConsole').textContent='착석 상태: '+SEAT_KO[seatStateName(seatFiltered())]+(state.sensorFault?' (센서 값 이상)':'')+' · 순공: '+stPhase+(pmActive?' · 뽀모도로: '+pmActive.phase:'')+(clockOffset?' · 테스트 시계 +'+hm(clockOffset):'')+' · 저장된 세션 '+stSessions.length+'개';
+}
+function renderStudyChallenge(ms,rec,todayMs,rate){
+  const now=stNow();
+  $('csToday').textContent=hm(todayMs);$('csGoal').textContent=hm(goalMs());$('csRate').textContent=rate+'%';$('csRateBar').style.width=Math.min(100,rate)+'%';$('csDone').hidden=rate<100;
+  $('csRateBar').style.background=rate>=100?'var(--good)':'';
+  // week (Mon start), compared with the same days of last week
+  const t0=dayStart(now),dow=(new Date(now).getDay()+6)%7,mon=addDays(t0,-dow),tomorrow=addDays(t0,1);
+  const wk=sumRange(ms,mon,tomorrow),lw=sumRange(ms,addDays(mon,-7),addDays(tomorrow,-7));
+  $('cwTotal').textContent=hm(wk);deltaText('cwDelta',wk,lw,'지난주 같은 기간');
+  const vals=[...Array(7)].map((_,i)=>ms[dayKey(addDays(mon,i))]||0),mx=Math.max(goalMs(),...vals);
+  $('cwBars').innerHTML=['월','화','수','목','금','토','일'].map((l,i)=>'<div class="'+(i===dow?'today':'')+'"><b>'+(addDays(mon,i)>now?'':(vals[i]>=3600000?(+(vals[i]/3600000).toFixed(1))+'시간':Math.floor(vals[i]/60000)+'분'))+'</b><i style="height:'+Math.max(2,vals[i]/mx*100)+'%"></i><span>'+l+'</span></div>').join('');
+  // month, compared with the same date range last month
+  const d=new Date(now),m1=new Date(d.getFullYear(),d.getMonth(),1).getTime(),pm1=new Date(d.getFullYear(),d.getMonth()-1,1).getTime(),pmDays=new Date(d.getFullYear(),d.getMonth(),0).getDate();
+  const mo=sumRange(ms,m1,tomorrow),pmo=sumRange(ms,pm1,addDays(pm1,Math.min(d.getDate(),pmDays)));
+  $('cmTotal').textContent=hm(mo);deltaText('cmDelta',mo,pmo,'지난달 같은 기간');
+  if(calMonth==null)calMonth=m1;
+  const cm=new Date(calMonth),first=(cm.getDay()+6)%7,nd=new Date(cm.getFullYear(),cm.getMonth()+1,0).getDate();
+  $('calTitle').textContent=cm.getFullYear()+'년 '+(cm.getMonth()+1)+'월';
+  let h=['월','화','수','목','금','토','일'].map(x=>'<span class="dow">'+x+'</span>').join('')+'<span class="pad"></span>'.repeat(first);
+  for(let i=1;i<=nd;i++){const dt=new Date(cm.getFullYear(),cm.getMonth(),i).getTime(),k=dayKey(dt),v=ms[k]||0,r=v/goalMs();
+    const cls=dt>now?'future':!rec[k]?'none':v<60000?'zero':r>=1?'l4':r>=.66?'l3':r>=.33?'l2':'l1';
+    h+='<button type="button" data-day="'+k+'" class="'+cls+(k===dayKey(now)?' today':'')+(k===calSel?' sel':'')+'" aria-label="'+(cm.getMonth()+1)+'월 '+i+'일 '+(rec[k]?hm(v):'기록 없음')+'">'+i+'</button>'}
+  $('cal').innerHTML=h;
+  if(calSel){const [y,mm,dd]=calSel.split('-');$('calInfo').textContent=(+mm)+'월 '+(+dd)+'일 · '+(rec[calSel]?'순공 '+hm(ms[calSel]||0)+' ('+allSessions().filter(s=>dayKey(s.startAt)===calSel).length+'회 세션)':'기록 없음')}
+  setChips('goalChips',stPrefs.goalMin);
+  pmRenderChallenge(now,t0,mon,tomorrow,m1);
+  const got=ST_BADGES.filter(b=>stEarned[b.id]).length;$('sbCount').textContent=got+' / '+ST_BADGES.length;
+  $('sbadges').innerHTML=ST_BADGES.map(b=>{const e=stEarned[b.id];const dd=e&&new Date(e);return '<div class="'+(e?'on':'off')+'">'+badgeSvg(b,'g')+'<b>'+b.name+'</b><span>'+(e?(dd.getMonth()+1)+'월 '+dd.getDate()+'일 획득':b.cond)+'</span></div>'}).join('');
+}
+function deltaText(id,cur,prev,label){const el=$(id);if(!prev){el.textContent=cur?label+' 기록 없음':'—';el.className='delta';return}
+  const p=Math.round((cur-prev)/prev*100);el.textContent=label+' 대비 '+(p>=0?'+':'')+p+'%';el.className='delta '+(p>=0?'up':'down')}
+function showReport(rec){const now=stNow(),{ms}=dayTotals(),k=dayKey(rec.endAt),today=ms[k]||0;
+  const todays=stSessions.filter(s=>dayKey(s.startAt)===k);
+  $('srepTitle').textContent='순공 종료 리포트';$('srepSt').hidden=false;$('srepPm').hidden=true;$('srepFuture').hidden=false;
+  $('srepReason').textContent=rec.endReason==='away'?'자리비움 자동 종료':'사용자 종료';$('srepReason').className='stchip '+(rec.endReason==='away'?'warn':'pause');
+  $('rpSession').textContent=hm(rec.studyMs);$('rpToday').textContent=hm(today);$('rpCount').textContent=todays.length+'회';
+  $('rpAvg').textContent=hm(todays.length?todays.reduce((t,s)=>t+s.studyMs,0)/todays.length:0);$('rpRate').textContent=Math.round(today/goalMs()*100)+'%';$('rpPause').textContent=rec.pauseCount+'회';
+  $('rpSeat').textContent=rec.seatData==='sensor'?'방석 센서 착석 데이터로 측정한 기록이에요.':rec.seatData==='mixed'?'방석 센서와 가상 착석 데이터가 섞인 기록이에요.':'가상 착석 데이터(데모)로 측정한 기록이에요.';
+  if(state.alertOpen)closeAlert(false);$('srep').hidden=false}
+
+/* ---- restore after reload: one active session, never duplicated ---- */
+(function restore(){
+  const ids=new Set();stSessions=stSessions.filter(s=>!ids.has(s.id)&&ids.add(s.id));
+  if(!stActive)return;
+  if(stSessions.some(s=>s.id===stActive.id)){stActive=null;saveStudy();return}
+  const gap=stNow()-stActive.lastSeen;
+  if(['running','grace','error'].includes(stActive.phase)&&gap>stPrefs.graceSec*1000){
+    // app was closed longer than the away grace: we cannot confirm seating, so close at the last confirmed moment
+    stOn=true;stEnd('away',stActive.lastSeen);return}
+  stOn=true;stPhase=stActive.phase;log('이전 순공 세션 이어서 측정 · '+stActive.id);
+})();
+
+/* ================= 뽀모도로 (inside 순공 mode) =================
+   Phases: WAITING_FOR_SEAT → COUNTDOWN → FOCUS ⇄ FOCUS_PAUSED → SHORT_BREAK / LONG_BREAK → … → COMPLETED (record).
+   Focus time = wall-clock segments, exactly like 순공, and those segments are the only place it is counted. */
+const PM_VIB={focus_start:[1,'집중 시작'],short_break:[2,'짧은 휴식 시작'],long_break:[3,'긴 휴식 시작'],break_end:[1,'휴식 끝']};
+const pmGraceMs=()=>stPrefs.graceSec*1000;
+function pmFocusMs(A,now){let t=0;for(let i=A.curIdx;i<A.segments.length;i++){const [a,b]=A.segments[i];t+=(b??now)-a}return t}
+function pmEvent(A,type,t){A.events.push({t:t??stNow(),type});if(A.events.length>300)A.events.splice(0,A.events.length-300)}
+function pmSave(force){const t=performance.now();if(force||t-pmLastSave>1000){pmLastSave=t;savePomo()}}
+
+function pmVibrate(kind){const A=pmActive;if(!A)return;const [count,label]=PM_VIB[kind],t=stNow();
+  if(A.vib.some(v=>v.kind===kind&&t-v.t<2000))return;            // same pattern twice within 2 s → drop
+  const e={t,kind,label,count,result:pmPrefs.vib?'pending':'off',code:null,acked:0};
+  A.vib.push(e);if(A.vib.length>200)A.vib.splice(0,A.vib.length-200);
+  if(!pmPrefs.vib){log('뽀모도로 '+label+' · 진동 꺼짐');return}
+  // back pair (M2 뒤-오른쪽 + M3 뒤-왼쪽), 0.25 s pulses, 0.35 s apart — inside the firmware's 40 % / 1 s pair limits
+  motorBus.run({label:'뽀모도로 '+label,targets:[2,3],duty:Math.min(+prefs.duty,40),ms:250,count,gap:350}).then(r=>{
+    e.result=r.result;e.code=r.code;e.acked=r.acked;
+    log('뽀모도로 진동 · '+label+' '+count+'회 → '+(r.result==='ok'?'방석 응답 확인 '+r.acked+'/'+count:r.result==='demo'?'데모 표시(실제 진동 아님)':'실패 · '+r.code+(r.acked?' ('+r.acked+'/'+count+'회까지 확인)':'')));
+    pmSave(true);stRender(true)})}
+
+function pmStart(){if(pmActive)return;const now=stNow();
+  const studyWasOn=stOn||!!stActive;
+  if(stActive)stEnd('pomodoro',now,true);                         // general 순공 so far is saved; no overlap afterwards
+  cancelCountdown();stOn=true;stPhase='pomodoro';
+  pmActive={id:'P'+now.toString(36)+Math.random().toString(36).slice(2,6),startAt:now,phase:'WAITING_FOR_SEAT',fresh:true,
+    completedFocus:0,inCycle:0,cycles:0,segments:[],curIdx:0,focusDur:pmPrefs.focus*60000,
+    breakKind:null,breakStart:null,breakEnd:null,breakMs:0,breakAway:[],graceStart:null,pauseReason:null,pausedAt:null,pauseCount:0,pauseMs:0,
+    lastSeen:now,studyWasOn,vib:[],events:[],sensorErrors:0,virtual:false,sensor:false,lateBreak:false,
+    settings:{focus:pmPrefs.focus,short:pmPrefs.short,long:pmPrefs.long,every:pmPrefs.every}};
+  pmEvent(pmActive,'start',now);savePomo();log('뽀모도로 켬 · 집중 '+pmPrefs.focus+'분 / 휴식 '+pmPrefs.short+'분 / '+pmPrefs.every+'회마다 긴 휴식 '+pmPrefs.long+'분');
+  if(seatFiltered()==='seated')pmCountdown();else log('뽀모도로 · 착석 대기');
+  stRender(true)}
+
+function pmCountdown(){const A=pmActive;A.phase='COUNTDOWN';pmSave(true);
+  runCountdown(A.fresh?'집중 시작':'다시 집중',()=>{if(pmActive===A&&A.phase==='COUNTDOWN')pmBeginFocus()})}
+
+function pmBeginFocus(){const A=pmActive,now=stNow();
+  if(A.fresh){A.curIdx=A.segments.length;A.focusDur=pmPrefs.focus*60000;A.fresh=false;log('집중 '+(A.completedFocus+1)+'회차 시작 · '+Math.round(A.focusDur/60000)+'분')}
+  else log('집중 '+(A.completedFocus+1)+'회차 이어서');
+  A.segments.push([now,null]);A.phase='FOCUS';A.graceStart=null;pmEvent(A,'focus',now);pmSave(true);pmVibrate('focus_start');stRender(true)}
+
+function pmPause(reason,at){const A=pmActive;closeSeg(A,at);A.phase='FOCUS_PAUSED';A.pauseReason=reason;A.pausedAt=at;A.graceStart=null;A.pauseCount++;
+  if(reason==='disconnected')A.sensorErrors++;pmEvent(A,'pause_'+reason,at);
+  log('집중 일시정지 · '+({away:'자리 비움 '+stPrefs.graceSec+'초 초과',disconnected:'센서 연결 끊김',user:'사용자 STOP',app_closed:'앱이 꺼져 있었음'}[reason])+' · 남은 집중 '+mmss(A.focusDur-pmFocusMs(A,at)));
+  pmSave(true);stRender(true)}
+
+function pmResume(why){const A=pmActive,now=stNow();if(!A||A.phase!=='FOCUS_PAUSED')return;
+  A.pauseMs+=Math.max(0,now-A.pausedAt);A.pausedAt=null;A.pauseReason=null;A.segments.push([now,null]);A.phase='FOCUS';
+  pmEvent(A,'resume',now);log('집중 재개 · '+why);pmSave(true);pmVibrate('focus_start');stRender(true)}
+
+function pmCheckFocusDone(now){const A=pmActive,el=pmFocusMs(A,now);if(A.fresh||el<A.focusDur)return false;
+  const last=A.segments[A.segments.length-1],endAt=(last[1]??now)-(el-A.focusDur);last[1]=endAt;   // close at the exact moment the focus filled up
+  if(A.phase==='FOCUS_PAUSED'){A.pauseMs+=Math.max(0,now-A.pausedAt);A.pausedAt=null;A.pauseReason=null}
+  A.completedFocus++;A.inCycle++;A.graceStart=null;const long=A.inCycle>=pmPrefs.every;if(long){A.inCycle=0;A.cycles++}
+  pmEvent(A,'focus_done',endAt);log('집중 '+A.completedFocus+'회 완료'+(long?' · 사이클 '+A.cycles+' 완료':''));
+  A.breakKind=long?'long':'short';A.phase=long?'LONG_BREAK':'SHORT_BREAK';A.breakStart=endAt;
+  A.breakEnd=endAt+(long?pmPrefs.long:pmPrefs.short)*60000;A.fresh=true;A.lateBreak=false;
+  pmSave(true);
+  if(now-endAt<90000)pmVibrate(long?'long_break':'short_break');else log('앱이 꺼져 있던 동안 집중이 끝나 휴식 시작 진동은 생략했어요');
+  stRender(true);return true}
+
+function pmEndBreak(now){const A=pmActive;A.breakMs+=A.breakEnd-A.breakStart;pmCloseBreakAway(A,A.breakEnd);pmEvent(A,'break_done',A.breakEnd);
+  const late=now-A.breakEnd>90000;A.breakStart=A.breakEnd=null;A.breakKind=null;
+  if(late)log('앱이 꺼져 있던 동안 휴식이 끝나 휴식 끝 진동은 생략했어요');else pmVibrate('break_end');
+  const seat=seatFiltered();
+  if(seat==='seated'){log('휴식 끝 · 착석 확인, 다음 집중 준비');pmCountdown()}
+  else{A.phase='WAITING_FOR_SEAT';log('휴식 끝 · '+(seat==='disconnected'?'센서 연결 확인 필요':'착석 대기'));pmSave(true)}
+  stRender(true)}
+function pmCloseBreakAway(A,t){const l=A.breakAway[A.breakAway.length-1];if(l&&l.end==null)l.end=t}
+
+function pmTick(now,seat){const A=pmActive;
+  if(seat==='seated'){if(seatVirtual())A.virtual=true;else A.sensor=true}
+  switch(A.phase){
+    case 'WAITING_FOR_SEAT':if(seat==='seated')pmCountdown();break;
+    case 'COUNTDOWN':if(seat!=='seated'&&cdTimers.length){cancelCountdown();A.phase='WAITING_FOR_SEAT';log('카운트다운 중 착석 해제 · 다시 대기')}break;
+    case 'FOCUS':
+      if(A.graceStart==null){
+        if(seat==='away'){closeSeg(A,now);A.graceStart=now;pmEvent(A,'away',now);log('집중 중 자리 비움 · '+stPrefs.graceSec+'초 유예')}
+        else if(seat==='disconnected')pmPause('disconnected',now);
+      }else{
+        if(seat==='seated'){A.segments.push([now,null]);A.graceStart=null;pmEvent(A,'return',now);log('다시 착석 · 집중 이어서')}
+        else if(seat==='disconnected')pmPause('disconnected',A.graceStart);
+        else if(now-A.graceStart>=pmGraceMs())pmPause('away',A.graceStart);
+      }
+      if(A.phase==='FOCUS')pmCheckFocusDone(now);break;
+    case 'FOCUS_PAUSED':
+      if(pmCheckFocusDone(now))break;
+      if(A.pauseReason==='disconnected'&&seat!=='disconnected'){if(seat==='seated')pmResume('센서 재연결');else{A.pauseReason='away';log('센서 재연결 · 착석 대기')}}
+      else if((A.pauseReason==='away'||A.pauseReason==='app_closed')&&seat==='seated')pmResume('다시 착석');
+      break;
+    case 'SHORT_BREAK':case 'LONG_BREAK':{
+      const l=A.breakAway[A.breakAway.length-1],open=l&&l.end==null;
+      if(pmPrefs.logBreakAway&&seat==='away'&&!open){A.breakAway.push({start:now,end:null});log('휴식 중 일어섬 · 기록')}
+      else if(open&&seat!=='away')l.end=now;
+      if(seat==='disconnected'&&!A.breakDisc){A.breakDisc=true;A.sensorErrors++;log('휴식 중 센서 연결 끊김 · 휴식은 계속 진행')}
+      if(seat!=='disconnected')A.breakDisc=false;
+      if(now>=A.breakEnd)pmEndBreak(now);break}
+  }
+  if(pmActive===A){A.lastSeen=now;pmSave(false)}
+}
+
+function pmEnd(reason,opts={}){const A=pmActive;if(!A)return;const now=stNow();cancelCountdown();
+  if(cdMode==='grace')cdHide(true);
+  closeSeg(A,now);
+  if(A.breakStart!=null){A.breakMs+=Math.max(0,Math.min(now,A.breakEnd)-A.breakStart);pmCloseBreakAway(A,Math.min(now,A.breakEnd))}
+  if(A.phase==='FOCUS_PAUSED'&&A.pausedAt!=null)A.pauseMs+=Math.max(0,now-A.pausedAt);
+  const partial=!A.fresh&&['FOCUS','FOCUS_PAUSED','COUNTDOWN','WAITING_FOR_SEAT'].includes(A.phase)?pmFocusMs(A,now):0;
+  pmEvent(A,'end',now);
+  const rec={id:A.id,startAt:A.startAt,endAt:now,focusMs:segMs(A,now),breakMs:A.breakMs,completedFocus:A.completedFocus,cycles:A.cycles,
+    interrupted:partial>0,partialFocusMs:partial,endedIn:A.phase,finalPhase:'COMPLETED',endReason:reason,
+    seatData:A.sensor&&A.virtual?'mixed':A.sensor?'sensor':'virtual',sensorErrors:A.sensorErrors,pauseCount:A.pauseCount,pauseMs:A.pauseMs,
+    breakAway:A.breakAway,settings:A.settings,segments:A.segments,vib:A.vib,events:A.events};
+  if(!pmSessions.some(s=>s.id===rec.id))pmSessions.push(rec);
+  pmActive=null;savePomo();
+  log('뽀모도로 종료 · 집중 '+rec.completedFocus+'회 완료 · 집중 시간 '+hm(rec.focusMs)+(partial?' (마지막 '+mmss(partial)+'은 미완료)':''));
+  if(opts.keepStudy&&stOn&&A.studyWasOn){const seat=seatFiltered();stPhase=seat==='disconnected'?'nosensor':'waiting';log('일반 순공으로 돌아가요')}
+  else{stOn=false;stPhase='idle'}
+  if(!opts.quiet)pmShowReport(rec);checkBadges();stRender(true)}
+
+function pmShowReport(rec){const {ms}=dayTotals(),today=ms[dayKey(rec.endAt)]||0;
+  $('srepTitle').textContent='뽀모도로 리포트';$('srepSt').hidden=true;$('srepPm').hidden=false;$('srepFuture').hidden=true;
+  $('srepReason').textContent={user:'뽀모도로 끔',study_off:'순공 모드 끔'}[rec.endReason]||'종료';$('srepReason').className='stchip pause';
+  $('ppFocus').textContent=hm(rec.focusMs);$('ppDone').textContent=rec.completedFocus+'회';$('ppBreak').textContent=hm(rec.breakMs);
+  $('ppCycle').textContent=rec.cycles+'회';$('ppToday').textContent=hm(today);
+  const v=rec.vib.filter(x=>x.result!=='off'),ok=v.filter(x=>x.result==='ok').length,demo=v.filter(x=>x.result==='demo').length,fail=v.filter(x=>x.result==='fail').length;
+  $('ppVib').textContent=!pmPrefs.vib&&!v.length?'진동 꺼짐':ok&&!fail&&!demo?'방석 확인 '+ok+'건':fail?'실패 '+fail+'건':demo?'데모 표시':'—';
+  $('rpSeat').textContent=(rec.interrupted?'마지막 집중 '+mmss(rec.partialFocusMs)+'은 완료되지 않았지만 순공 시간에는 포함돼요. ':'')+
+    (rec.seatData==='sensor'?'방석 센서 착석 데이터로 측정했어요.':rec.seatData==='mixed'?'방석 센서와 가상 착석 데이터가 섞인 기록이에요.':'가상 착석 데이터(데모)로 측정했어요.');
+  if(state.alertOpen)closeAlert(false);$('srep').hidden=false}
+
+/* ---- rendering ---- */
+function pmRenderTimer(now,seat,graceLeft){const A=pmActive,show=!!A;
+  $('pmRound').hidden=!show;$('pmBar').hidden=!show;$('pmCtl').hidden=!show;$('pmVib').hidden=!show;$('stNote').hidden=show;
+  $('pmDesc').innerHTML='집중 '+pmPrefs.focus+'분 · 짧은 휴식 '+pmPrefs.short+'분<br>'+pmPrefs.every+'회마다 긴 휴식 '+pmPrefs.long+'분';
+  if(!show){$('stClock').classList.remove('brk');pmLastPhase=null;return}
+  const ph=A.phase,brk=ph==='SHORT_BREAK'||ph==='LONG_BREAK',el=A.fresh?0:pmFocusMs(A,now),dur=A.fresh?pmPrefs.focus*60000:A.focusDur;
+  const key=ph+(brk?A.breakEnd:'');if(pmLastPhase!==null&&pmLastPhase!==key){const c=$('stClock').closest('.timer');c.classList.remove('swap');void c.offsetWidth;c.classList.add('swap')}pmLastPhase=key;
+  const n=A.completedFocus+(brk?0:1);
+  $('stTtl').textContent=brk?(ph==='LONG_BREAK'?'긴 휴식':'짧은 휴식')+' · 남은 시간':'집중 '+n+'회차 · 남은 시간';
+  const left=brk?A.breakEnd-now:dur-el;$('stClock').textContent=hms(Math.ceil(Math.max(0,left)/1000)*1000);   // same HH:MM:SS face as the 순공 timer
+  $('stClock').classList.toggle('on',ph==='FOCUS'&&A.graceStart==null);$('stClock').classList.toggle('brk',brk);
+  const prog=brk?(now-A.breakStart)/(A.breakEnd-A.breakStart):el/dur;$('pmBar').firstElementChild.style.width=Math.max(0,Math.min(100,prog*100))+'%';$('pmBar').classList.toggle('brk',brk);
+  const every=pmPrefs.every,done=ph==='LONG_BREAK'?every:Math.min(A.inCycle,every);let dots='';
+  for(let i=0;i<Math.max(every,done);i++)dots+='<i class="'+(i<done?'done':(!brk&&i===done?'cur':''))+'"></i>';
+  $('pmRound').innerHTML=dots;$('pmRound').classList.toggle('brk',brk);$('pmRound').setAttribute('aria-label','이번 사이클 '+done+'/'+every+'회 집중 완료');
+  const disc=seat==='disconnected';let chip,cls,sub;
+  switch(ph){
+    case 'WAITING_FOR_SEAT':chip='착석 대기';cls=disc?'err':'warn';sub=disc?'방석 연결 상태를 확인해 주세요.':A.completedFocus||!A.fresh?'방석에 다시 착석해 주세요.':'방석에 앉으면 3초 뒤 집중을 시작해요.';break;
+    case 'COUNTDOWN':chip='시작 준비';cls='pause';sub='곧 집중을 시작해요.';break;
+    case 'FOCUS':if(A.graceStart!=null){chip='자리 비움 확인 중';cls=graceLeft<=10000?'err':'warn';sub='방석에 다시 착석해 주세요. '+Math.max(0,Math.ceil(graceLeft/1000))+'초 뒤 집중이 일시정지돼요.'}
+      else{chip='집중';cls='run';sub='집중하고 있어요.'}break;
+    case 'FOCUS_PAUSED':chip='집중 일시정지';cls=A.pauseReason==='user'?'pause':'err';
+      sub=A.pauseReason==='disconnected'?'방석 연결 상태를 확인해 주세요.':A.pauseReason==='user'?'남은 집중 시간은 그대로예요. 재개를 누르면 이어서 집중해요.':'방석에 다시 착석해 주세요. 앉으면 남은 시간부터 이어져요.';break;
+    case 'SHORT_BREAK':chip='짧은 휴식';cls='pause';sub='잠시 쉬어가세요.';break;
+    case 'LONG_BREAK':chip='긴 휴식';cls='pause';sub='충분히 휴식하고 다시 시작해요.';break;
+  }
+  if(brk&&disc)sub+=' (방석 연결 상태를 확인해 주세요.)';
+  $('stState').textContent=chip;$('stState').className='stchip '+cls;$('stState').hidden=true;/* pomodoro: no phase chip — the timer title says it */$('stSub').textContent=sub;
+  $('stSub').classList.toggle('urgent',ph==='FOCUS'&&A.graceStart!=null&&graceLeft<=10000);
+  const userPaused=ph==='FOCUS_PAUSED'&&A.pauseReason==='user';
+  $('pmPause').hidden=ph!=='FOCUS';$('pmResume').hidden=!userPaused;
+  const last=A.vib[A.vib.length-1];
+  let vt='진동 횟수 · 집중 시작 1 · 짧은 휴식 2 · 긴 휴식 3 · 휴식 끝 1';
+  if(!pmPrefs.vib)vt='뽀모도로 진동이 꺼져 있어요 · 설정에서 켤 수 있어요';
+  else if(last){const r=last.result==='ok'?'<span class="ok">방석 응답 확인('+last.acked+'/'+last.count+')</span>':last.result==='demo'?'데모 표시 · 실제 진동 아님':last.result==='fail'?'<span class="fail">진동 실패 · '+last.code+'</span>':last.result==='pending'?'전송 중…':'진동 꺼짐';
+    vt+='<br>최근 진동 <b>'+last.label+' '+last.count+'회</b> · '+r}
+  $('pmVib').innerHTML=vt}
+
+function pmDayTotals(){const ms={},now=stNow();
+  for(const s of pmActive?[...pmSessions,pmActive]:pmSessions)for(const [a,b0] of s.segments){const b=b0??now;let x=a;while(x<b){const e=Math.min(b,addDays(x,1)),k=dayKey(x);ms[k]=(ms[k]||0)+(e-x);x=e}}
+  return ms}
+function pmRenderChallenge(now,t0,mon,tomorrow,m1){const ms=pmDayTotals();
+  $('cpToday').textContent=hm(ms[dayKey(now)]||0);$('cpWeek').textContent=hm(sumRange(ms,mon,tomorrow));$('cpMonth').textContent=hm(sumRange(ms,m1,tomorrow));
+  const list=(pmActive?[...pmSessions,pmActive]:pmSessions).filter(s=>s.startAt>=m1);
+  $('cpDone').textContent=list.reduce((t,s)=>t+(s.completedFocus||0),0)+'회';$('cpCycle').textContent=list.reduce((t,s)=>t+(s.cycles||0),0)+'회';
+  $('cpAvg').textContent=hm(list.length?list.reduce((t,s)=>t+segMs(s,now),0)/list.length:0)}
+function pmRenderReportCard(stMs,now){const k=dayKey(now),ms=pmDayTotals(),d0=dayStart(now);
+  $('rfStudy').textContent=hm(stMs[k]||0);$('rfPomo').textContent=hm(ms[k]||0);
+  $('rfDone').textContent=(pmActive?[...pmSessions,pmActive]:pmSessions).reduce((t,s)=>t+(s.events||[]).filter(e=>e.type==='focus_done'&&e.t>=d0).length,0)+'회'}
+
+const PM_CHIPS=[['focus','pmFocusC',5,120],['short','pmShortC',1,30],['long','pmLongC',5,60],['every','pmEveryC']];
+function pmRenderPrefs(){for(const [k,id] of PM_CHIPS){const v=pmPrefs[k],bs=[...document.querySelectorAll('#'+id+' button')],hit=bs.some(b=>b.dataset.val===String(v));
+    bs.forEach(b=>b.setAttribute('aria-checked',b.dataset.val===String(v)||(!hit&&b.dataset.val==='custom')));
+    $(id+'Val').textContent=v+(k==='every'?'회':'분')}
+  $('pmVibOpt').checked=pmPrefs.vib;$('pmAwayOpt').checked=pmPrefs.logBreakAway}
+function pmSetPref(k,v){if(pmPrefs[k]===v)return;pmPrefs[k]=v;savePomo();pmRenderPrefs();
+  toast(pmActive?'저장했어요 · 지금 단계는 그대로, 다음 단계부터 적용돼요':'저장했어요');log('뽀모도로 설정 · '+k+' = '+v+(pmActive?' (다음 단계부터)':''));stRender(true)}
+for(const [k,id,mn,mx] of PM_CHIPS){
+  $(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.val==='custom'){const c=$(id+'Cus');c.hidden=!c.hidden;if(!c.hidden)c.querySelector('input').focus();return}
+    if(mn&&$(id+'Cus'))$(id+'Cus').hidden=true;pmSetPref(k,+b.dataset.val)});
+  if(mn){const box=$(id+'Cus'),inp=box.querySelector('input');
+    const apply=()=>{const v=Math.round(+inp.value);if(!(v>=mn&&v<=mx)){toast(mn+'~'+mx+'분 사이로 입력해 주세요');return}inp.value='';box.hidden=true;pmSetPref(k,v)};
+    box.querySelector('button').addEventListener('click',apply);inp.addEventListener('keydown',e=>{if(e.key==='Enter')apply()})}}
+$('pmVibOpt').addEventListener('change',e=>pmSetPref('vib',e.target.checked));
+$('pmAwayOpt').addEventListener('change',e=>pmSetPref('logBreakAway',e.target.checked));
+$('pmPause').addEventListener('click',()=>{const A=pmActive;if(!A||A.phase!=='FOCUS')return;pmPause('user',A.graceStart??stNow())});
+$('pmResume').addEventListener('click',()=>{const A=pmActive;if(!A||A.phase!=='FOCUS_PAUSED')return;
+  const seat=seatFiltered();if(seat==='seated')pmResume('사용자 재개');
+  else{A.pauseReason=seat==='disconnected'?'disconnected':'away';toast(seat==='disconnected'?'방석 연결 상태를 확인해 주세요':'방석에 앉으면 이어서 집중해요');pmSave(true);stRender(true)}});
+$('pmEndBtn').addEventListener('click',()=>pmEnd('user',{keepStudy:false}));
+
+/* ---- restore after reload / long background: one active run, never duplicated ---- */
+(function pmRestore(){
+  const ids=new Set();pmSessions=pmSessions.filter(s=>!ids.has(s.id)&&ids.add(s.id));
+  if(!pmActive)return;
+  if(pmSessions.some(s=>s.id===pmActive.id)){pmActive=null;savePomo();return}
+  if(stActive)stEnd('pomodoro',stActive.lastSeen,true);
+  const A=pmActive,now=stNow(),gap=now-A.lastSeen;stOn=true;stPhase='pomodoro';
+  if(A.phase==='COUNTDOWN')A.phase='WAITING_FOR_SEAT';
+  if(A.phase==='FOCUS'&&gap<0)pmPause('app_closed',now);            // device clock moved backwards: stop, don't count negative time
+  else if(A.phase==='FOCUS'&&(gap>pmGraceMs()||(A.graceStart!=null&&now-A.graceStart>=pmGraceMs())))
+    pmPause(A.graceStart!=null?'away':'app_closed',A.graceStart??A.lastSeen);   // can't confirm seating while closed → that time is not focus
+  savePomo();log('이전 뽀모도로 이어서 · '+A.phase+(gap>pmGraceMs()?' · 앱이 꺼져 있던 '+hm(gap)+'은 집중에서 빠져요':''));
+})();
+
+/* ---- wiring ---- */
+$('stOn').addEventListener('change',e=>stSetOn(e.target.checked));
+$('stPomo').addEventListener('change',e=>{const on=e.target.checked,t=performance.now();
+  if(t-pmToggleAt<800){e.target.checked=!on;toast('잠시 후 다시 눌러 주세요');return}pmToggleAt=t;
+  if(on)pmStart();else pmEnd('user',{keepStudy:true});stRender(true)});
+$('stStop').addEventListener('click',()=>{const opts=['1','5','10'].filter(m=>stPrefs.pauses[m]);
+  $('stPickChips').innerHTML=opts.map(m=>'<button type="button" data-min="'+m+'">'+m+'분</button>').join('');$('stPick').hidden=false;stRender(true)});
+$('stPickChips').addEventListener('click',e=>{const b=e.target.closest('button');if(b)stPause(+b.dataset.min)});
+$('stPickCancel').addEventListener('click',()=>{$('stPick').hidden=true;stRender(true)});
+['stEnd','stEnd2','stEnd3'].forEach(id=>$(id).addEventListener('click',()=>stEnd('user')));
+$('stResume').addEventListener('click',stResumeNow);
+$('srepClose').addEventListener('click',()=>$('srep').hidden=true);
+['1','5','10'].forEach(m=>$('stP'+m).addEventListener('change',e=>{const next=Object.assign({},stPrefs.pauses,{[m]:e.target.checked});
+  if(!Object.values(next).some(Boolean)){e.target.checked=true;toast('일시정지 시간은 최소 1개 켜져 있어야 해요');return}stPrefs.pauses=next;saveStudy()}));
+$('stGrace').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;stPrefs.graceSec=+b.dataset.val;saveStudy();setChips('stGrace',stPrefs.graceSec)});
+$('goalChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setGoal(+b.dataset.val)});
+$('goalApply').addEventListener('click',()=>{const h=parseFloat($('goalCustom').value);if(!(h>=0.5&&h<=16)){toast('0.5~16시간 사이로 입력해 주세요');return}setGoal(Math.round(h*60));$('goalCustom').value=''});
+function setGoal(min){stPrefs.goalMin=min;saveStudy();try{localStorage.removeItem('huriup.'+SK.goalDay)}catch(e){}toast('일일 순공 목표를 '+hm(min*60000)+'으로 정했어요');stRender(true)}
+$('calPrev').addEventListener('click',()=>{const c=new Date(calMonth);calMonth=new Date(c.getFullYear(),c.getMonth()-1,1).getTime();calSel=null;stRender(true)});
+$('calNext').addEventListener('click',()=>{const c=new Date(calMonth);calMonth=new Date(c.getFullYear(),c.getMonth()+1,1).getTime();calSel=null;stRender(true)});
+$('cal').addEventListener('click',e=>{const b=e.target.closest('button[data-day]');if(!b)return;calSel=b.dataset.day;stRender(true)});
+document.querySelectorAll('[data-ch]').forEach(b=>b.addEventListener('click',()=>{chTab=b.dataset.ch;document.querySelectorAll('[data-ch]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('chPosture').hidden=chTab!=='posture';$('chStudy').hidden=chTab!=='study';stRender(true)}));
+// console test controls
+$('tsSeat').addEventListener('click',()=>{if(state.source!=='demo'){toast('데모 시뮬레이터에서만 쓸 수 있어요');return}testDisconnect=false;$('autoPlay').checked=false;state.auto=false;setScenario('good')});
+$('tsAway').addEventListener('click',()=>{if(state.source!=='demo'){toast('데모 시뮬레이터에서만 쓸 수 있어요');return}$('autoPlay').checked=false;state.auto=false;setScenario('empty')});
+$('tsDisc').addEventListener('click',()=>{if(state.source!=='demo'){toast('데모 시뮬레이터에서만 쓸 수 있어요');return}testDisconnect=!testDisconnect;$('tsDisc').setAttribute('aria-pressed',testDisconnect);log(testDisconnect?'테스트: 센서 연결 끊김':'테스트: 센서 연결 복구')});
+document.querySelectorAll('[data-warp]').forEach(b=>b.addEventListener('click',()=>{const v=+b.dataset.warp;clockOffset=v?clockOffset+v*60000:0;store.set(SK.offset,clockOffset);log(v?'테스트 시계 +'+v+'분':'테스트 시계 원위치');stTick();checkBadges();stRender(true)}));
+$('tsReset').addEventListener('click',()=>{if(stActive){stActive=null}pmActive=null;pmSessions=[];savePomo();cancelCountdown();stOn=false;stPhase='idle';stSessions=[];stEarned={};clockOffset=0;store.set(SK.offset,0);try{localStorage.removeItem('huriup.'+SK.goalDay)}catch(e){}saveStudy();$('srep').hidden=true;log('순공 기록 초기화');stRender(true)});
+setInterval(stTick,250);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)stTick()});
+stRender(true);
+
+/* ---- team feedback: shared rows in the artifact's db (collection "feedback") ---- */
+(()=>{
+const TYPES=['디자인','기능','문구','오류','아이디어'];
+const ST={new:'검토 전',planned:'반영 예정',done:'반영 완료',hold:'보류'};
+const SCREEN_KO={home:'홈',report:'리포트',study:'순공',challenge:'챌린지',prefs:'설정'};
+let db=null,user=null,me=null,canWrite=null,items=[],fType='디자인',fltStatus='all',fltScreen='all',busy=false;
+const el=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function screenNow(){
+  if(!el('onboard').hidden)return '시작 화면';
+  if(state.alertOpen)return '자세 알림 팝업';
+  if(!el('srep').hidden)return el('srepTitle').textContent||'종료 리포트';
+  if(screen==='study'&&typeof pmActive!=='undefined'&&pmActive)return '순공 · 뽀모도로';
+  if(screen==='challenge')return '챌린지 · '+(document.querySelector('[data-ch][aria-selected="true"]')?.textContent?.trim()||'자세');
+  if(screen==='report')return '리포트';
+  return SCREEN_KO[screen]||screen}
+function msg(t,err){el('fbMsg').textContent=t||'';el('fbMsg').classList.toggle('err',!!err)}
+function chips(box,list,cur,onPick){box.innerHTML=list.map(([v,l])=>'<button type="button" role="radio" aria-checked="'+(v===cur)+'" data-v="'+esc(v)+'">'+esc(l)+'</button>').join('');
+  box.onclick=e=>{const b=e.target.closest('button');if(!b)return;onPick(b.dataset.v);[...box.children].forEach(x=>x.setAttribute('aria-checked',x===b))}}
+chips(el('fbType'),TYPES.map(t=>[t,t]),fType,v=>fType=v);
+chips(el('fbFltStatus'),[['all','전체'],['new','검토 전'],['planned','반영 예정'],['done','반영 완료']],fltStatus,v=>{fltStatus=v;renderList()});
+el('fbFltScreen').onchange=e=>{fltScreen=e.target.value;renderList()};
+try{el('fbNick').value=localStorage.getItem('huriup.fbNick')||''}catch(e){}
+setInterval(()=>{const s=screenNow();if(el('fbScreen').textContent!==s)el('fbScreen').textContent=s},400);
+const when=t=>{const d=new Date(t),n=new Date();const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  return d.toDateString()===n.toDateString()?'오늘 '+hm:(d.getMonth()+1)+'/'+d.getDate()+' '+hm};
+async function renderList(){
+  const screens=[...new Set(items.map(i=>i.screen))].sort();const sel=el('fbFltScreen');const keep=sel.value;
+  sel.innerHTML='<option value="all">모든 화면</option>'+screens.map(s=>'<option'+(s===keep?' selected':'')+'>'+esc(s)+'</option>').join('');
+  if(!screens.includes(keep))fltScreen='all';
+  const open=items.filter(i=>i.status!=='done').length;
+  el('fbStat').textContent=items.length?('전체 '+items.length+'건 · 반영 전 '+open+'건'):'아직 피드백이 없어요';
+  const list=items.filter(i=>(fltStatus==='all'||i.status===fltStatus)&&(fltScreen==='all'||i.screen===fltScreen));
+  if(!list.length){el('fbList').innerHTML='<li class="fbempty">'+(items.length?'조건에 맞는 피드백이 없어요':'첫 피드백을 남겨 주세요')+'</li>';return}
+  let names={};if(user){try{names=await user.profiles([...new Set(list.map(i=>i.author).filter(Boolean))])}catch(e){}}
+  el('fbList').innerHTML=list.map(i=>{const mine=me&&me.id&&i.author===me.id;const who=(names[i.author]&&names[i.author].name)||i.nick||'팀원';
+    const stCtl=canWrite!==false?'<select data-id="'+esc(i.id)+'" aria-label="상태 바꾸기">'+Object.entries(ST).map(([k,l])=>'<option value="'+k+'"'+(k===i.status?' selected':'')+'>'+l+'</option>').join('')+'</select>':'<span class="st">'+(ST[i.status]||'')+'</span>';
+    return '<li class="'+(i.status==='done'?'done':'')+'"><div class="fbtags"><span class="fbtag t-'+esc(i.type)+'">'+esc(i.type)+'</span><span class="fbtag">'+esc(i.screen)+'</span></div>'+
+      '<p class="fbtext">'+esc(i.text)+'</p><div class="fbmeta"><span class="who">'+esc(who)+(mine?' (나)':'')+'</span><span>'+when(i.createdAt)+'</span>'+stCtl+
+      ((mine||(me&&me.isOwner))&&canWrite!==false?'<button class="del" type="button" data-del="'+esc(i.id)+'">삭제</button>':'')+'</div></li>'}).join('')}
+el('fbList').addEventListener('change',async e=>{const s=e.target.closest('select[data-id]');if(!s||!db)return;
+  try{await db.collection('feedback').doc(s.dataset.id).update({status:s.value,updatedAt:Date.now()})}catch(err){msg(errText(err),true);renderList()}});
+el('fbList').addEventListener('click',async e=>{const b=e.target.closest('[data-del]');if(!b||!db)return;
+  if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='정말 삭제';setTimeout(()=>{b.dataset.confirm='';b.textContent='삭제'},3000);return}
+  try{await db.collection('feedback').doc(b.dataset.del).delete()}catch(err){msg(errText(err),true)}});
+function errText(e){const c=e&&e.code;
+  if(c==='not_granted')return '피드백을 저장할 권한이 없어요. 페이지 소유자에게 편집자 초대를 요청해 주세요.';
+  if(c==='rate_limited'||c==='resource_exhausted')return '잠시 후 다시 시도해 주세요.';
+  return '저장하지 못했어요. 잠시 후 다시 시도해 주세요.'}
+el('fbForm').addEventListener('submit',async e=>{e.preventDefault();if(busy)return;
+  const text=el('fbText').value.trim();if(!text){msg('내용을 입력해 주세요.',true);el('fbText').focus();return}
+  if(!db){msg('claude.ai에서 이 페이지를 열어야 저장돼요.',true);return}
+  const nick=el('fbNick').value.trim().slice(0,12);try{localStorage.setItem('huriup.fbNick',nick)}catch(e){}
+  busy=true;el('fbSend').disabled=true;msg('저장 중…');
+  try{await db.collection('feedback').add({author:(me&&me.id)||null,nick,screen:screenNow(),type:fType,text:text.slice(0,1000),status:'new',createdAt:Date.now()});
+    el('fbText').value='';msg('남겼어요. 고마워요!')}
+  catch(err){msg(errText(err),true)}
+  finally{busy=false;el('fbSend').disabled=false}});
+// connect to the shared store (absent outside claude.ai → read-only notice)
+const noStore=()=>{el('fbStat').textContent='저장소에 연결되지 않음';msg('claude.ai에서 열면 피드백을 남길 수 있어요.',true);el('fbSend').disabled=true;
+  el('fbList').innerHTML='<li class="fbempty">피드백 목록을 불러오지 못했어요</li>'};
+if(!window.claude||!claude.use){noStore();return}
+const timer=setTimeout(()=>{if(!db)noStore()},10000);
+claude.use('user').then(async u=>{user=u;if(u){me=await u.me();canWrite=await u.can('data.write');renderList()}});
+claude.use('db').then(d=>{if(!d){clearTimeout(timer);noStore();return}db=d;
+  d.collection('feedback').orderBy('createdAt','desc').onSnapshot(snap=>{clearTimeout(timer);items=snap.docs.map(x=>({id:x.id,...x.data()}));renderList()},
+    err=>{clearTimeout(timer);el('fbStat').textContent='목록을 불러오지 못했어요';msg(errText(err),true)})});
+})();
+
+</script>
+
+
+</body></html>
