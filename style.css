@@ -1895,3 +1895,9 @@ main > section { overflow-x: clip; }
 #technology .judge-threshold { color: var(--pe-text-2); border-top: 1px dashed var(--pe-rule-strong); }   /* 앰버는 진동 알림 작동에만 */
 #about .statement .st-l .w { opacity: 0.7; }   /* 회색 1행은 밝아지기 전에도 큰 글자 3:1 이상 (0.45면 2.4:1) */
 #about .statement.no-scrub .st-l .w, #about .statement.is-lit .st-l .w { opacity: 1; }
+
+/* 간격 정리 (2026-11): 반복 블록을 뺀 뒤 문단 사이 리듬 — 제목→내용 72 / 52px로 통일, 기술 단계 사이 빈 공간 축소 */
+#about .statement { margin-bottom: 0; }
+.section-header.pe-head { margin-bottom: clamp(28px, 3.4vw, 48px); }
+@media (min-width: 1024px) { .story-step { min-height: 30vh; padding: 28px 0; } }
+@media (max-width: 1023px) { .story-step { padding: 28px 0; } }

@@ -178,90 +178,13 @@
     <!-- ============ 02. 스테이트먼트 + 핵심 특징 ============ -->
     <section class="about" id="about" tabindex="-1">
         <div class="container">
-            <h2 class="sr-only">HURRY UP의 핵심 구성</h2>
+            <h2 class="sr-only">HURRY UP이 하는 일</h2>
             <!-- 굵기 대비 두 줄 (가는 1행 · 굵은 2행). 단어별 밝아짐은 script.js splitStatementWords가 줄마다 나눔 -->
             <p class="statement" data-split-words>
                 <span class="st-line st-l">대부분의 방석은 받쳐 줄 뿐입니다.</span>
                 <span class="st-line st-b">HURRY UP은 자세를 알려 줍니다.</span>
             </p>
 
-            <div class="bento" data-reveal-group>
-                <article class="bento-card bento-wide" data-reveal>
-                    <div class="bento-text">
-                        <h3>다중 압력 센싱</h3>
-                        <p>엉덩이와 허벅지 쪽 압력으로 좌우 균형을 감지합니다.</p>
-                    </div>
-                    <div class="bento-visual sensor-dots-visual" id="bentoSensorDots" aria-hidden="true"></div>
-                </article>
-
-                <article class="bento-card" data-reveal>
-                    <div class="bento-visual haptic-visual" aria-hidden="true">
-                        <span></span><span></span><span></span><i></i>
-                    </div>
-                    <div class="bento-text">
-                        <h3>본인만 느끼는 미세 진동</h3>
-                        <p>주변에 들리지 않는 저소음 알림을 목표로 합니다.</p>
-                    </div>
-                </article>
-
-                <article class="bento-card" data-reveal>
-                    <div class="bento-visual foam-visual" aria-hidden="true">
-                        <svg viewBox="0 0 460 380"><use href="#cushionShape"/></svg>
-                    </div>
-                    <div class="bento-text">
-                        <h3>인체공학 폼</h3>
-                        <p>골반을 받치고 꼬리뼈 압박을 줄이는 굴곡 구조.</p>
-                    </div>
-                </article>
-
-                <article class="bento-card bento-wide" data-reveal>
-                    <div class="bento-text">
-                        <h3>앱으로 보는 착석 습관</h3>
-                        <p>착석 시간, 좌우 균형, 주간 리포트를 확인합니다.</p>
-                    </div>
-                    <div class="bento-visual app-visual" aria-hidden="true">
-                        <div class="app-visual-bars">
-                            <span style="--h:65%"></span><span style="--h:72%"></span><span style="--h:58%"></span><span style="--h:80%"></span><span style="--h:88%"></span>
-                        </div>
-                    </div>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============ 02-B. 브랜드 필름 (15초 쇼릴) ============ -->
-    <section class="film" id="film" aria-labelledby="filmTitle">
-        <div class="container">
-            <div class="section-header" data-reveal>
-                <span class="eyebrow">Brand Film</span>
-                <h2 id="filmTitle">15초로 보는 HURRY UP.</h2>
-            </div>
-            <div class="film-frame" id="filmFrame" data-reveal>
-                <!-- JS 없이도 재생 가능: 기본 컨트롤 + 720p 소스. JS가 있으면 화면 크기에 맞는 소스·자동 재생으로 교체 -->
-                <video id="filmVideo" class="film-video" controls muted loop playsinline preload="none" poster="media/showreel-poster.jpg" width="1920" height="1080" aria-label="HURRY UP 브랜드 쇼릴, 15초">
-                    <source src="media/hurryup-showreel-720.mp4" type="video/mp4">
-                    <source src="media/hurryup-showreel-720.webm" type="video/webm">
-                </video>
-                <button type="button" class="film-start" id="filmStart" hidden aria-label="쇼릴 재생">
-                    <span><svg class="icon"><use href="#i-play"/></svg></span>
-                </button>
-                <div class="film-controls" id="filmControls" hidden>
-                    <button type="button" class="film-btn" id="filmPlay" aria-label="일시정지">
-                        <svg class="icon icon-pause"><use href="#i-pause"/></svg><svg class="icon icon-play"><use href="#i-play"/></svg>
-                    </button>
-                    <button type="button" class="film-btn wide" id="filmSound" aria-label="소리 켜기">
-                        <svg class="icon icon-muted"><use href="#i-volume-x"/></svg><svg class="icon icon-sound"><use href="#i-volume-2"/></svg><span>소리 켜기</span>
-                    </button>
-                    <div class="film-progress" aria-hidden="true"><i id="filmBar"></i></div>
-                    <button type="button" class="film-btn" id="filmFull" aria-label="전체 화면">
-                        <svg class="icon"><use href="#i-maximize"/></svg>
-                    </button>
-                </div>
-            </div>
-            <div class="film-meta" data-reveal>
-                <span>2.5D 모션 그래픽 · 시제품 렌더 기반 · 콘셉트 시각화와 예시 데이터 포함</span>
-                <a href="media/hurryup-showreel.mp4" download class="film-dl"><svg class="icon"><use href="#i-download"/></svg> MP4 다운로드 (1080p, 사운드)</a>
-            </div>
         </div>
     </section>
 
@@ -342,20 +265,6 @@
                 </div>
             </div>
 
-            <div class="tech-specs" data-reveal-group>
-                <div class="tech-spec" data-reveal>
-                    <strong>단독 동작 설계</strong>
-                    <span>앱 없이도 감지하고 진동하도록 설계</span>
-                </div>
-                <div class="tech-spec" data-reveal>
-                    <strong>충전식 배터리</strong>
-                    <span>USB-C 충전 방식으로 설계</span>
-                </div>
-                <div class="tech-spec" data-reveal>
-                    <strong>착용하지 않는 방식</strong>
-                    <span>쓰던 의자 위에 올려 두고 사용</span>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -551,12 +460,6 @@
                 <div class="proto-info" data-reveal>
                     <span class="status-chip progress"><i></i> 하드웨어 프로토타입 개발 중</span>
                     <p class="proto-lead">센서와 진동 피드백을 담은 HURRY UP의 핵심 시제품입니다.</p>
-                    <ul class="proto-points">
-                        <li><svg class="icon"><use href="#i-scan-line"/></svg><div><strong>다중 압력 센서</strong><span>MVP 시제품에 FSR 센서 적용</span></div></li>
-                        <li><svg class="icon"><use href="#i-waves"/></svg><div><strong>저소음 진동 알림</strong><span>본인만 느끼는 짧은 진동</span></div></li>
-                        <li><svg class="icon"><use href="#i-bluetooth"/></svg><div><strong>BLE 앱 연동</strong><span>개발 중</span></div></li>
-                        <li><svg class="icon"><use href="#i-battery-medium"/></svg><div><strong>충전식 배터리</strong><span>USB-C 충전 방식으로 설계</span></div></li>
-                    </ul>
                     <p class="proto-note" id="protoPriceNote">가격과 출시 일정은 아직 정해지지 않았습니다.</p>
                     <div class="proto-cta">
                         <a href="#contact" class="btn btn-pill btn-accent" data-inquiry="trial">시제품 체험 신청 <svg class="icon"><use href="#i-arrow-right"/></svg></a>
