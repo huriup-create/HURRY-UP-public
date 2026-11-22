@@ -5,7 +5,7 @@
    · 스크롤 진행도 0→1이 곧 장면. 자동 재생 없음. 위로 스크롤하면 모든 움직임이 그대로 되감김(진행도의 순수 함수).
      고정은 CSS position: sticky (.cine-stage), 진행도는 스크롤 위치에서 직접 계산 (별도 스크롤 컨트롤러 없음).
    · 실제 3D 형상 (이미지 교체 없음):
-     - 방석: 사이트의 탑뷰 외곽선(#cushionShape)을 돌출(Extrude) — 실제 CAD가 아닌 근사 형상
+     - 방석: 제품 렌더에서 원근 보정해 얻은 탑뷰 외곽선(CUSHION_3D)을 돌출(Extrude) — 실제 CAD가 아닌 근사 형상
      - 레이어 6장: 하드웨어 섹션에 있던 분해도(개념도)와 같은 순서 · 이름 · 부품 표기
        01 폼 · 외피 커버 / 02 압력센서 레이어 / 03 진동 모터 / 04 메인 제어 보드 / 05 BLE 통신 / 06 배터리 · 전원
        부품 위치 · 크기는 그 분해도 그림(구 HW_LAYER_ART)의 좌표를 그대로 옮김. 새 부품 · 수치를 만들지 않음
@@ -17,7 +17,8 @@
    ========================================================= */
 // Three.js r170 (MIT): 사이트에 포함된 사본을 먼저 사용 → 인터넷 없이 발표해도 동작. 사본이 없을 때만 CDN.
 const THREE_LOCAL = new URL('vendor/three-0.170.0/three.module.min.js', import.meta.url).href;
-const loadThree = () => import(THREE_LOCAL);   // 배포본: 외부 CDN 대체 없이 포함된 사본만 사용
+const THREE_CDN = 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js';
+const loadThree = () => import(THREE_LOCAL).catch(() => import(THREE_CDN));
 const qs = new URLSearchParams(location.search);
 const POSTER_MODE = qs.has('poster');      // tools/preview_cinematic.py --posters
 
@@ -25,6 +26,7 @@ const section = document.getElementById('home');
 const canvas = document.getElementById('cineCanvas');
 const copy = document.getElementById('cineCopy');
 const labels = [...document.querySelectorAll('.cine-label')];
+const callout = document.getElementById('cineCallout');   // 첫 화면: '허리업 스마트 방석' 리더선 라벨 (카피와 함께 사라짐)
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const saveData = !!(navigator.connection && (navigator.connection.saveData || /(^|-)2g$/.test(navigator.connection.effectiveType || '')));
@@ -37,6 +39,9 @@ const FOV = 30;
 // ---------------------------------------------------------
 // 치수 (월드 단위 = mm). 방석 외곽선은 viewBox 460×380 그대로 1단위 = 1mm 로 사용
 // ---------------------------------------------------------
+// 3D 방석 외곽선 (탑뷰, 1단위 = 1mm, 위쪽 = 앞): 제품 렌더(images/product-hd.png)의 윗면 가장자리를 원근 보정 · 앞뒤 대칭화해 얻은 형상.
+//   두 엽(좌 · 우)과 앞 · 뒤의 잘록한 곳, 앞쪽 잘록한 곳에 전원 버튼. 체압 체험의 탑뷰 그림(#cushionShape)과는 별개
+const CUSHION_3D = 'M 232 43.2 C 223.8 48.3, 217.6 50.5, 210 51.4 C 202.3 52.3, 196 52.3, 186.2 48.7 C 176.5 45.1, 164.2 34.8, 151.2 29.6 C 138.3 24.5, 120.6 16.6, 108.7 17.5 C 96.8 18.5, 87.5 27.3, 79.9 35.1 C 72.3 43, 67.5 54.4, 63.1 64.7 C 58.7 74.9, 56.2 86.1, 53.6 96.5 C 50.9 106.9, 49 117.1, 47.1 127.2 C 45.2 137.3, 43.5 147.1, 42.3 157 C 41.1 166.9, 40.1 176.8, 40 186.7 C 39.9 196.6, 40.6 206.5, 41.5 216.4 C 42.5 226.3, 44.2 236.1, 45.9 246.1 C 47.6 256.1, 49.5 266.2, 52 276.6 C 54.4 286.9, 56.7 297.9, 60.6 308.3 C 64.4 318.7, 68.5 330.2, 75.3 338.9 C 82 347.6, 90 357.7, 101 360.5 C 112 363.2, 128.3 359.8, 141.5 355.4 C 154.6 351, 169.3 338.5, 179.9 334 C 190.5 329.4, 197.2 328.2, 205.1 328.2 C 212.9 328.2, 219 329.7, 226.9 334 C 234.8 338.2, 242.7 347.2, 252.5 353.9 C 262.3 360.6, 274.2 369.9, 285.7 374 C 297.2 378.2, 310.5 380.3, 321.6 378.9 C 332.7 377.5, 343.4 371.8, 352.4 365.6 C 361.4 359.3, 369 350.2, 375.6 341.3 C 382.2 332.5, 387.3 322.2, 391.8 312.3 C 396.2 302.4, 399.3 292, 402.4 282 C 405.5 272, 408 262.1, 410.4 252.3 C 412.9 242.5, 415.4 232.9, 417 223.1 C 418.6 213.2, 419.8 203.3, 420 193.3 C 420.2 183.4, 419.4 173.4, 418 163.5 C 416.7 153.6, 414.4 144, 412.1 134.2 C 409.8 124.4, 407.2 114.7, 404.3 104.7 C 401.4 94.8, 398.6 84.4, 394.5 74.4 C 390.4 64.4, 385.8 54, 379.8 44.8 C 373.7 35.6, 366.6 26.2, 358.2 19.2 C 349.7 12.1, 339.8 5.3, 329 2.7 C 318.3 0.1, 305.3 0.4, 293.7 3.3 C 282.1 6.3, 269.6 13.7, 259.4 20.4 C 249.1 27, 240.2 38, 232 43.2 Z';
 const OUTLINE_FALLBACK = 'M 230 40 C 280 40, 340 25, 390 60 C 440 95, 450 170, 435 240 C 420 310, 350 350, 270 345 C 240 343, 230 330, 230 330 C 230 330, 220 343, 190 345 C 110 350, 40 310, 25 240 C 10 170, 20 95, 70 60 C 120 25, 180 40, 230 40 Z';
 const VB = { w: 460, h: 380 };
 const SEAT_TOP = 470;                      // 의자 좌판 윗면 높이
@@ -71,6 +76,14 @@ const CAM = [
     [0.70, SEAT_TOP + LIFT + 55, 540, 8, 34, 400],
     [1.00, SEAT_TOP + LIFT + 55, 520, 4, 30, 380],
 ];
+// 휴대폰: 좌판 중심의 타이트한 첫 구도 (방석이 화면 폭의 약 3분의 2). 0.26 이후는 위 경로와 같음
+const CAM_PHONE = [
+    [0.00, 525, 380, 30, 16, 380],
+    [0.08, 520, 370, 28, 18, 370],
+    ...CAM.slice(2),
+];
+// 첫 화면 제품 위치 (화면 비): 넓은 화면은 카피가 왼쪽 열 → 의자를 오른쪽 절반 가운데에 두고, 카피가 빠지는 동안 가운데로
+const START_AX = { wide: 0.70, tablet: 0.5, phone: 0.5 };
 
 // 분해 장면의 화면 배치 (화면 비율별): 스택 중심 x(화면 비) · 담을 반지름 배율
 const SIDE = { wide: { ax: 0.42, r: 1.0 }, tablet: { ax: 0.40, r: 1.05 }, phone: { ax: 0.33, r: 1.15 } };
@@ -176,7 +189,7 @@ async function boot() {
     // ---------- 형상 도우미 ----------
     const CX = VB.w / 2, CY = VB.h / 2;
     function outlineShape() {
-        const d = document.querySelector('#cushionShape path')?.getAttribute('d') || OUTLINE_FALLBACK;
+        const d = CUSHION_3D || document.querySelector('#cushionShape path')?.getAttribute('d') || OUTLINE_FALLBACK;
         const t = d.match(/[MCZ]|-?\d*\.?\d+/g), s = new THREE.Shape();
         let i = 0; const pt = () => [+t[i++] - CX, +t[i++] - CY];
         while (i < t.length) {
@@ -259,12 +272,18 @@ async function boot() {
     // 06 배터리 · 전원: 배터리 124×58 (168, 226) + 단자 8×20 (292, 245)
     L6.add(at(box(124, 12, 58, M.battery), 168 + 62, 226 + 29, 6), at(box(8, 8, 20, M.battery), 292 + 4, 245 + 10, 4));
 
-    // 전원 LED: 앞쪽 벽(탑뷰 위쪽 가장자리), 가운데에서 오른쪽 — 실제 렌더의 버튼 위치
-    const front = outline.getSpacedPoints(400).filter(p => p.y < 0).reduce((a, p) => Math.abs(p.x - 90) < Math.abs(a.x - 90) ? p : a);
+    // 전원 LED: 앞쪽 잘록한 곳의 가운데 벽 — 실제 렌더의 버튼 위치. 벽의 바깥 방향(법선)을 바라보게
+    const ring400 = outline.getSpacedPoints(400);
+    const fi = ring400.reduce((bi, p, i) => (p.y < 0 && Math.abs(p.x) < Math.abs(ring400[bi].x) ? i : bi), ring400.findIndex(p => p.y < 0));
+    const fa = ring400[(fi + 399) % 400], fb = ring400[(fi + 1) % 400], front = ring400[fi];
+    let nx = fb.y - fa.y, nz = fb.x - fa.x;                                  // 탑뷰 접선의 수직 → 월드 (x, z = -y)
+    const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
+    if (nz < 0) { nx = -nx; nz = -nz; }                                      // 앞(카메라 쪽)을 향하도록
     const led = mesh(new THREE.CircleGeometry(4.5, 32), M.led, { cast: false });
-    led.position.set(front.x, shellH * 0.5, -front.y + 9.6);
+    led.position.set(front.x + nx * 9.6, shellH * 0.5, -front.y + nz * 9.6);
+    led.rotation.y = Math.atan2(nx, nz);
     const ledRing = mesh(new THREE.RingGeometry(6.5, 8, 40), M.led, { cast: false });
-    ledRing.position.copy(led.position);
+    ledRing.position.copy(led.position); ledRing.rotation.copy(led.rotation);
     const base = { shell: 0, plate: 6, pad: shellH - PAD_SINK };   // 조립 상태: 내부 판은 셸 안(보이지 않음)
     const edgeX = Math.max(...outline.getSpacedPoints(240).map(p => p.x));   // 외곽선 오른쪽 끝 (라벨 기준점)
     shell.add(led, ledRing);
@@ -305,26 +324,40 @@ async function boot() {
     chair.traverse(o => { if (o.isMesh) chairMeshes.push(o); });
 
     // ---------- 카메라 ----------
-    const camPath = [1, 2, 3, 4, 5].map(c => pchip(CAM.map(k => k[0]), CAM.map(k => k[c])));
+    const pathOf = (keys) => [1, 2, 3, 4, 5].map(c => pchip(keys.map(k => k[0]), keys.map(k => k[c])));
+    const camPaths = { wide: pathOf(CAM), tablet: pathOf(CAM), phone: pathOf(CAM_PHONE) };
     const target = new THREE.Vector3(), tmp = new THREE.Vector3();
-    let view = { w: 1, h: 1 }, profile = '', start = { ay: 0.5, room: 1 };
+    let view = { w: 1, h: 1 }, profile = '', start = { ax: 0.5, ay: 0.5, room: 1 };
     function layout() {
         profile = profileFor(innerWidth, innerHeight);
         section.dataset.layout = profile;
-        // 카피(헤드라인 · 버튼) 아래 남는 공간에 의자 전체를 놓음. transform과 무관한 offset 값으로 측정
+        const bottom = view.h - Math.max(52, view.h * 0.06);
+        if (profile === 'wide') {
+            // 넓은 화면: 카피는 왼쪽 열 → 의자는 내비게이션 아래 ~ 아래 여백 사이 전체 높이, 오른쪽 절반 가운데
+            const top = 64 + Math.max(16, view.h * 0.03), room = bottom - top;
+            start = { ax: START_AX.wide, ay: (top + room / 2) / view.h, room: room / view.h };
+            return;
+        }
+        // 세로 · 좁은 화면: 카피(헤드라인 · 버튼) 아래 남는 공간에 놓음. transform과 무관한 offset 값으로 측정
         const copyBottom = copy ? copy.offsetTop + copy.offsetHeight : view.h * 0.4;
         const top = Math.min(copyBottom + Math.max(16, view.h * 0.02), view.h * 0.62);
-        const bottom = view.h - Math.max(52, view.h * 0.06);
         const room = Math.max(bottom - top, view.h * 0.3);
-        start = { ay: (top + room / 2) / view.h, room: room / view.h };
+        let ayPx = top + room / 2;
+        if (profile === 'phone') {
+            // 휴대폰: 좌판 중심 구도라 등받이가 위로 길게 올라옴 → 등받이 윗끝이 카피(버튼 줄) 끝 + 14px에 오도록 좌판 위치를 정함.
+            //   660 = 첫 구도에서 등받이 윗끝 ~ 방석 윗면 화면 거리(mm 환산, 실측). 좁아서 버튼이 두 줄이 되어도 겹치지 않음
+            const pxPerMm = view.w / (2.08 * CAM_PHONE[0][5]);
+            ayPx = clamp(copyBottom + 14 + 660 * pxPerMm, top + room / 2, bottom - 40);
+        }
+        start = { ax: START_AX[profile] ?? 0.5, ay: ayPx / view.h, room: room / view.h };
     }
     function cameraAt(p) {
-        let [ty, r, az, el, rh] = camPath.map(f => f(p));
+        let [ty, r, az, el, rh] = camPaths[profile].map(f => f(p));
         const k = smooth(T.frame[0], T.frame[1], p);
         const fill = lerp(start.room, 1, k);                     // 시작: 카피 아래 공간에 맞춤
         const ay = lerp(start.ay, 0.5, k);
         const sk = smooth(T.side[0], T.side[1], p) * (1 - smooth(T.center[0], T.center[1], p));
-        const ax = lerp(0.5, SIDE[profile].ax, sk);
+        const ax = lerp(lerp(start.ax, 0.5, k), SIDE[profile].ax, sk);
         const retreat = lerp(1, SIDE[profile].r, sk);           // 라벨이 있는 동안만 조금 물러남 → 끝에서 다시 가까이
         r *= retreat; rh *= retreat;
         const vHalf = FOV * DEG / 2, hHalf = Math.atan(Math.tan(vHalf) * view.w / view.h);
@@ -384,6 +417,18 @@ async function boot() {
     }
     const anchorOf = ([obj, sc, y]) => { tmp.set(edgeX * sc - 6, y, -10); return toScreen(obj.localToWorld(tmp)); };
     const note = document.querySelector('.cine-label-note');
+    // 첫 화면 리더선 라벨: 방석 윗면 가운데에 기준점 → 위로 꺾인 선 → 이름. 카피와 같은 진행도에서 사라짐
+    function placeCallout(p) {
+        if (!callout) return;
+        const fade = 1 - smooth(T.copyOut[0], T.copyOut[1], p);
+        callout.toggleAttribute('data-on', fade > 0.001);
+        if (fade <= 0.001) return;
+        tmp.set(0, SEAT_TOP + 46, 0);
+        const a = toScreen(tmp);
+        callout.style.setProperty('--cx', a.x.toFixed(1) + 'px');
+        callout.style.setProperty('--cy', a.y.toFixed(1) + 'px');
+        callout.style.setProperty('--on', fade.toFixed(3));
+    }
     function placeLabels(on) {
         labels.forEach(el => el.toggleAttribute('data-on', on > 0.001));
         note?.toggleAttribute('data-on', on > 0.001);
@@ -466,6 +511,7 @@ async function boot() {
         scene.updateMatrixWorld();
         renderer.render(scene, camera);
         placeLabels(phase.labels);
+        placeCallout(shown);
         overlays(shown);
         if (!live) goLive();
         if (shown !== targetP) kick();

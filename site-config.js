@@ -19,7 +19,7 @@ window.HURRYUP_CONFIG = {
         endpoint: '',
         format: 'json',          // 'json' (Content-Type: application/json) | 'form' (multipart FormData)
         extraFields: {},         // 서비스가 요구하는 고정 필드. 예) Web3Forms: { access_key: '…' }
-        subject: '[허리업] 웹사이트 문의',
+        subject: '[HURRY UP] 웹사이트 문의',
 
         // 스팸 방지 (기본: 숨김 필드 + 최소 작성 시간 + 재전송 대기)
         minFillSeconds: 4,       // 폼을 처음 만진 뒤 이 시간 안에 제출되면 차단 (봇 방지)

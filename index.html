@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>허리업 HURRY UP — 스마트 자세관리 방석</title>
-    <meta name="description" content="압력 센싱과 미세 진동 피드백으로 바른 착석 습관을 돕는 스마트 자세관리 방석, 허리업(HURRY UP). 하드웨어 프로토타입 개발 중.">
+    <title>HURRY UP — 스마트 자세관리 방석</title>
+    <meta name="description" content="압력 센싱과 미세 진동 피드백으로 바른 착석 습관을 돕는 스마트 자세관리 방석, HURRY UP. 하드웨어 프로토타입 개발 중.">
     <link rel="canonical" href="https://huriup-create.github.io/HURRY-UP-public/">
     <meta property="og:url" content="https://huriup-create.github.io/HURRY-UP-public/">
     <meta name="theme-color" content="#050505">
     <meta name="color-scheme" content="dark light">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ko_KR">
-    <meta property="og:site_name" content="허리업 HURRY UP">
-    <meta property="og:title" content="허리업 HURRY UP — 스마트 자세관리 방석">
+    <meta property="og:site_name" content="HURRY UP">
+    <meta property="og:title" content="HURRY UP — 스마트 자세관리 방석">
     <meta property="og:description" content="압력 센싱과 미세 진동 피드백으로 바른 착석 습관을 돕는 스마트 자세관리 방석. 하드웨어 프로토타입 개발 중.">
     <meta property="og:image" content="https://huriup-create.github.io/HURRY-UP-public/images/og-image.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="허리업 로고와 시제품 렌더, 문구 '앉는 순간, 자세가 깨어납니다.'">
+    <meta property="og:image:alt" content="HURRY UP 로고와 시제품 렌더, 문구 '앉는 순간, 자세가 깨어납니다.'">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="apple-touch-icon" href="images/logo-mark-light.png">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <!-- Pretendard Variable 1.3.9: 저장소에 직접 포함 (fonts/pretendard, style.css의 @font-face) — 외부 CDN 없이도 같은 글꼴 -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700;800&display=swap">
     <link rel="preload" href="fonts/martian-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="style.css">
@@ -109,7 +109,7 @@
     <!-- ============ 네비게이션 ============ -->
     <header class="navbar pe-nav" id="navbar">
         <div class="nav-container">
-            <a href="#home" class="logo" aria-label="허리업 홈으로">
+            <a href="#home" class="logo" aria-label="HURRY UP 홈으로">
                 <img src="images/logo-mark-light.png" alt="" class="logo-mark" width="28" height="28">
                 <span class="logo-word">HURRY UP</span>
             </a>
@@ -144,7 +144,7 @@
             <picture class="cine-poster">
                 <source media="(max-width: 599px)" srcset="images/hero/poster-phone.webp">
                 <source media="(max-width: 1023px), (max-aspect-ratio: 5/4)" srcset="images/hero/poster-tablet.webp">
-                <img src="images/hero/poster-wide.webp" alt="사무용 의자 좌판 위에 놓인 허리업 스마트 방석의 3D 모델" width="1920" height="1080" fetchpriority="high" decoding="async">
+                <img src="images/hero/poster-wide.webp" alt="사무용 의자 좌판 위에 놓인 HURRY UP 스마트 방석의 3D 모델" width="1920" height="1080" fetchpriority="high" decoding="async">
             </picture>
             <canvas class="cine-canvas" id="cineCanvas" aria-hidden="true"></canvas>
             <p class="sr-only">스크롤하면 방석이 의자에서 떠올라 여섯 개의 레이어로 분리되는 개념 분해도가 재생됩니다: 01 폼 · 외피 커버, 02 압력센서 레이어, 03 진동 모터, 04 메인 제어 보드, 05 BLE 통신, 06 배터리 · 전원. 부품과 수치는 시제품 검증을 거쳐 정합니다.</p>
@@ -157,28 +157,19 @@
             <div class="cine-label" aria-hidden="true"><i class="cine-label-line"></i><i class="cine-label-mark"></i><p class="cine-label-text"><span class="pe-mono">05</span> BLE 통신</p></div>
             <div class="cine-label" aria-hidden="true"><i class="cine-label-line"></i><i class="cine-label-mark"></i><p class="cine-label-text"><span class="pe-mono">06</span> 배터리 · 전원</p></div>
             <p class="cine-label-note pe-mono" aria-hidden="true">개념도 · 실제 부품 형상 아님</p>
+            <!-- 첫 화면: 방석에 붙는 리더선 라벨 — 첫 링크에서 무엇이 제품인지 바로 보이게 (cinematic.js가 위치 갱신, 카피와 함께 사라짐) -->
+            <p class="cine-callout" id="cineCallout" aria-hidden="true"><i class="cine-callout-dot"></i><i class="cine-callout-line"></i><span class="cine-callout-text">HURRY UP 스마트 방석</span></p>
 
+            <!-- 첫 화면 카피: 표기와 제목만 (체험 · 쇼릴 버튼은 두지 않음 — 체압 체험은 내비게이션, 쇼릴은 아래 필름 섹션) -->
             <div class="cine-copy" id="cineCopy">
                 <p class="cine-eyebrow pe-mono" lang="en">HURRY UP · SMART POSTURE CUSHION</p>
                 <h1 class="pe-title" id="heroTitle">
                     <span class="pe-title-line pe-title-light">앉는 순간,</span>
                     <span class="pe-title-line pe-title-bold">자세가 깨어납니다.</span>
                 </h1>
-                <p class="pe-lede">일에 집중하다 한쪽으로 기대 앉은 자세가 이어지면, 짧은 진동으로 알려주는 스마트 방석.</p>
-                <div class="pe-actions">
-                    <!-- 체압 체험의 '자세 선택' 바로 앞으로 (고정 내비게이션 높이만큼 띄움, 3D 인트로는 건너뜀) -->
-                    <a href="#demoTry" class="pe-btn pe-btn-ink" data-demo-start>체압 체험하기 <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
-                    <button type="button" class="pe-reel" id="reelOpenBtn" aria-haspopup="dialog">
-                        <span class="pe-reel-icon" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
-                        <span>브랜드 쇼릴</span>
-                        <span class="pe-mono pe-reel-time">00:15</span>
-                    </button>
-                </div>
             </div>
 
             <div class="cine-hud">
-                <!-- 헤드라인 · 버튼이 사라진 뒤(인트로 진행 중)에도 같은 주 동작을 남김 -->
-                <a href="#demoTry" class="cine-skip cine-try" data-demo-start>체압 체험하기 <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
                 <a href="#about" class="cine-skip" data-skip-intro>인트로 건너뛰기 <svg class="icon" aria-hidden="true"><use href="#i-arrow-down"/></svg></a>
             </div>
         </div>
@@ -187,47 +178,44 @@
     <!-- ============ 02. 스테이트먼트 + 핵심 특징 ============ -->
     <section class="about" id="about" tabindex="-1">
         <div class="container">
-            <h2 class="sr-only">허리업의 핵심 구성</h2>
+            <h2 class="sr-only">HURRY UP의 핵심 구성</h2>
+            <!-- 굵기 대비 두 줄 (가는 1행 · 굵은 2행). 단어별 밝아짐은 script.js splitStatementWords가 줄마다 나눔 -->
             <p class="statement" data-split-words>
-                대부분의 방석은 받쳐 줄 뿐입니다.
-                허리업은 자세를 알려 줍니다.
+                <span class="st-line st-l">대부분의 방석은 받쳐 줄 뿐입니다.</span>
+                <span class="st-line st-b">HURRY UP은 자세를 알려 줍니다.</span>
             </p>
 
             <div class="bento" data-reveal-group>
-                <article class="bento-card bento-wide spotlight-card" data-reveal>
+                <article class="bento-card bento-wide" data-reveal>
                     <div class="bento-text">
-                        <span class="bento-kicker">Sensing</span>
                         <h3>다중 압력 센싱</h3>
                         <p>엉덩이와 허벅지 쪽 압력으로 좌우 균형을 감지합니다.</p>
                     </div>
                     <div class="bento-visual sensor-dots-visual" id="bentoSensorDots" aria-hidden="true"></div>
                 </article>
 
-                <article class="bento-card spotlight-card" data-reveal>
+                <article class="bento-card" data-reveal>
                     <div class="bento-visual haptic-visual" aria-hidden="true">
                         <span></span><span></span><span></span><i></i>
                     </div>
                     <div class="bento-text">
-                        <span class="bento-kicker">Haptics</span>
                         <h3>본인만 느끼는 미세 진동</h3>
                         <p>주변에 들리지 않는 저소음 알림을 목표로 합니다.</p>
                     </div>
                 </article>
 
-                <article class="bento-card spotlight-card" data-reveal>
+                <article class="bento-card" data-reveal>
                     <div class="bento-visual foam-visual" aria-hidden="true">
                         <svg viewBox="0 0 460 380"><use href="#cushionShape"/></svg>
                     </div>
                     <div class="bento-text">
-                        <span class="bento-kicker">Ergonomics</span>
                         <h3>인체공학 폼</h3>
                         <p>골반을 받치고 꼬리뼈 압박을 줄이는 굴곡 구조.</p>
                     </div>
                 </article>
 
-                <article class="bento-card bento-wide spotlight-card" data-reveal>
+                <article class="bento-card bento-wide" data-reveal>
                     <div class="bento-text">
-                        <span class="bento-kicker">Companion App</span>
                         <h3>앱으로 보는 착석 습관</h3>
                         <p>착석 시간, 좌우 균형, 주간 리포트를 확인합니다.</p>
                     </div>
@@ -246,11 +234,11 @@
         <div class="container">
             <div class="section-header" data-reveal>
                 <span class="eyebrow">Brand Film</span>
-                <h2 id="filmTitle">15초로 보는 허리업.</h2>
+                <h2 id="filmTitle">15초로 보는 HURRY UP.</h2>
             </div>
             <div class="film-frame" id="filmFrame" data-reveal>
                 <!-- JS 없이도 재생 가능: 기본 컨트롤 + 720p 소스. JS가 있으면 화면 크기에 맞는 소스·자동 재생으로 교체 -->
-                <video id="filmVideo" class="film-video" controls muted loop playsinline preload="none" poster="media/showreel-poster.jpg" width="1920" height="1080" aria-label="허리업 브랜드 쇼릴, 15초">
+                <video id="filmVideo" class="film-video" controls muted loop playsinline preload="none" poster="media/showreel-poster.jpg" width="1920" height="1080" aria-label="HURRY UP 브랜드 쇼릴, 15초">
                     <source src="media/hurryup-showreel-720.mp4" type="video/mp4">
                     <source src="media/hurryup-showreel-720.webm" type="video/webm">
                 </video>
@@ -294,7 +282,7 @@
                     </ul>
                 </div>
                 <div class="compare-col is-hurryup" data-reveal>
-                    <span class="compare-label"><img src="images/logo-mark-light.png" alt="" width="18" height="18"> 허리업 스마트 방석</span>
+                    <span class="compare-label"><img src="images/logo-mark-light.png" alt="" width="18" height="18"> HURRY UP 스마트 방석</span>
                     <ul>
                         <li>좌우 하중 쏠림을 실시간으로 감지</li>
                         <li>진동 알림으로 스스로 바로잡는 습관</li>
@@ -308,9 +296,8 @@
     <!-- ============ 04. 작동 원리 ============ -->
     <section class="technology" id="technology">
         <div class="container">
-            <div class="section-header" data-reveal>
-                <span class="eyebrow">Core Mechanism</span>
-                <h2>감지하고, 판단하고, 알려 줍니다.</h2>
+            <div class="section-header pe-head" data-reveal>
+                <h2><span class="l">감지하고, 판단하고,</span> <span class="b">알려 줍니다.</span></h2>
             </div>
 
             <div class="story">
@@ -357,17 +344,14 @@
 
             <div class="tech-specs" data-reveal-group>
                 <div class="tech-spec" data-reveal>
-                    <svg class="icon"><use href="#i-cpu"/></svg>
                     <strong>단독 동작 설계</strong>
                     <span>앱 없이도 감지하고 진동하도록 설계</span>
                 </div>
                 <div class="tech-spec" data-reveal>
-                    <svg class="icon"><use href="#i-battery-medium"/></svg>
                     <strong>충전식 배터리</strong>
                     <span>USB-C 충전 방식으로 설계</span>
                 </div>
                 <div class="tech-spec" data-reveal>
-                    <svg class="icon"><use href="#i-user-check"/></svg>
                     <strong>착용하지 않는 방식</strong>
                     <span>쓰던 의자 위에 올려 두고 사용</span>
                 </div>
@@ -394,6 +378,8 @@
                             <svg viewBox="0 0 460 380" aria-hidden="true"><use href="#cushionShape"/></svg>
                             <span class="demo-orient demo-orient-front" aria-hidden="true">앞 · 허벅지 쪽</span>
                             <span class="demo-orient demo-orient-rear" aria-hidden="true">뒤 · 엉덩이 쪽</span>
+                            <span class="demo-side demo-side-l" aria-hidden="true">좌</span>
+                            <span class="demo-side demo-side-r" aria-hidden="true">우</span>
                             <div class="dm-ripple" id="hapticRipple" aria-hidden="true"><span></span><span></span><span></span></div>
                             <div class="dm-nodes" id="demoNodes" role="group" aria-label="센서별 예시 압력"></div>
                         </div>
@@ -402,7 +388,7 @@
                     <div class="demo-render" id="demoRender">
                         <picture>
                             <source type="image/webp" srcset="images/product-hero-sm.webp 505w, images/product-hero.webp 1010w" sizes="(max-width: 700px) 86vw, (max-width: 1024px) 50vw, 34vw">
-                            <img src="images/product-hero.png" alt="허리업 스마트 프로 시제품 3D 렌더. 하중이 실린 쪽으로 살짝 기울어집니다" width="1010" height="640" loading="lazy" decoding="async">
+                            <img src="images/product-hero.png" alt="HURRY UP 스마트 프로 시제품 3D 렌더. 하중이 실린 쪽으로 살짝 기울어집니다" width="1010" height="640" loading="lazy" decoding="async">
                         </picture>
                         <svg class="pe-leaders" viewBox="0 -141 1010 781" aria-hidden="true">
                             <polyline points="410,222 410,-120 432,-120" />
@@ -427,24 +413,40 @@
                             <button type="button" class="dm-posture" data-posture="forward_lean" aria-pressed="false"><svg class="icon dm-check" aria-hidden="true"><use href="#i-check"/></svg><strong>앞쪽 쏠림</strong><span>허벅지 쪽 하중 증가</span></button>
                         </div>
                     </div>
-                    <div class="dm-block dm-block-balance">
-                        <p class="dm-label"><span>좌우 하중</span><span class="pe-mono">L : R</span></p>
-                        <p class="pe-readout"><span class="pe-readout-side">좌</span><span class="pe-mono pe-num" id="leftBalanceVal">50</span><span class="pe-mono pe-readout-colon">:</span><span class="pe-mono pe-num" id="rightBalanceVal">50</span><span class="pe-readout-side">우</span></p>
-                        <div class="pe-gauge" aria-hidden="true"><span class="pe-gauge-mid"></span><span class="pe-gauge-mark" id="balanceGaugeMark"></span></div>
+                    <!-- 첫 결과: 쉬운 말 판정 · 좌우 하중 · 진동 알림 상태를 한 묶음으로 (휴대폰에서는 맵 바로 아래) -->
+                    <div class="dm-block dm-result">
+                        <p class="dm-status"><span class="dm-tag" id="simStatus">균형 유지</span></p>
+                        <p class="dm-verdict" id="simVerdict" aria-live="polite">좌우 하중이 고르게 나뉘어 있어요</p>
+                        <div class="dm-result-cells">
+                            <div class="dm-block-balance">
+                                <p class="dm-label"><span>좌우 하중</span><span class="pe-mono">L : R</span></p>
+                                <p class="pe-readout"><span class="pe-readout-side">좌</span><span class="pe-mono pe-num" id="leftBalanceVal">50</span><span class="pe-mono pe-readout-colon">:</span><span class="pe-mono pe-num" id="rightBalanceVal">50</span><span class="pe-readout-side">우</span></p>
+                                <div class="pe-gauge" aria-hidden="true"><span class="pe-gauge-mid"></span><span class="pe-gauge-mark" id="balanceGaugeMark"></span></div>
+                            </div>
+                            <div class="pe-cell-feedback" id="simFeedback" data-state="idle">
+                                <p class="dm-label"><span>진동 알림</span><span class="pe-mono">HAPTIC · SIM</span></p>
+                                <p class="pe-fb-state"><span class="pe-fb-lamp" aria-hidden="true"></span><span id="simFbText" aria-live="polite">진동 알림 · 대기</span></p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="dm-block pe-cell-feedback" id="simFeedback" data-state="idle">
-                        <p class="dm-label"><span>진동 알림</span><span class="pe-mono">HAPTIC · SIM</span></p>
-                        <p class="pe-fb-state"><span class="pe-fb-lamp" aria-hidden="true"></span><span id="simFbText" aria-live="polite">진동 알림 · 대기</span></p>
+                    <!-- 첫 결과 아래: 편향 지속 시간 · 좌우 편향 추이 -->
+                    <div class="dm-block dm-block-hold">
                         <p class="pe-fb-hold"><span>편향 지속</span><span class="pe-mono" id="simHold">00:00.0</span></p>
                         <p class="pe-fb-rule">편향이 1.5초 이어지면 작동, 고르게 돌아오면 멈춤</p>
                     </div>
-                    <div class="dm-block dm-block-verdict">
-                        <p class="dm-label">판정</p>
-                        <p class="dm-verdict" id="simStatus" aria-live="polite">균형 유지</p>
-                        <p class="dm-tip" id="simTipText"></p>
+                    <div class="dm-block dm-block-trace" role="group" aria-label="좌우 편향 시간 추이 (예시 데이터)">
+                        <p class="pe-trace-head"><span>좌우 편향 추이</span><span class="pe-mono pe-trace-now" id="simBias">0</span></p>
+                        <svg class="pe-trace" viewBox="0 0 240 64" preserveAspectRatio="none" aria-hidden="true">
+                            <rect class="pe-trace-band" x="0" y="0" width="240" height="20.6" />
+                            <rect class="pe-trace-band" x="0" y="43.4" width="240" height="20.6" />
+                            <line class="pe-trace-mid" x1="0" y1="32" x2="240" y2="32" />
+                            <polyline class="pe-trace-line" id="simTraceLine" points="0,32 240,32" />
+                        </svg>
+                        <p class="pe-cell-label"><span>최근 12초 · 음영 = 알림 판정 구간 (±12%p)</span><span class="pe-mono">R ↑ L ↓</span></p>
                     </div>
                     <div class="dm-block dm-block-detail">
                         <p class="dm-label">세부 수치</p>
+                        <p class="dm-tip" id="simTipText"></p>
                         <dl class="dm-stats">
                             <div><dt>앞 : 뒤</dt><dd class="pe-mono" id="frontRearVal">39 : 61</dd></div>
                             <div><dt>평균 압력</dt><dd class="pe-mono" id="avgPressureVal">39%</dd></div>
@@ -464,18 +466,6 @@
                 </div>
             </div>
 
-            <div class="demo-strip" role="group" aria-label="좌우 편향 시간 추이 (예시 데이터)">
-                <div class="pe-cell pe-cell-trace">
-                    <p class="pe-trace-head"><span>좌우 편향 추이</span><span class="pe-mono pe-trace-now" id="simBias">0</span></p>
-                    <svg class="pe-trace" viewBox="0 0 240 64" preserveAspectRatio="none" aria-hidden="true">
-                        <rect class="pe-trace-band" x="0" y="0" width="240" height="20.6" />
-                        <rect class="pe-trace-band" x="0" y="43.4" width="240" height="20.6" />
-                        <line class="pe-trace-mid" x1="0" y1="32" x2="240" y2="32" />
-                        <polyline class="pe-trace-line" id="simTraceLine" points="0,32 240,32" />
-                    </svg>
-                    <p class="pe-cell-label"><span>최근 12초 · 음영 = 알림 판정 구간 (±12%p)</span><span class="pe-mono">R ↑ L ↓</span></p>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -483,15 +473,11 @@
          레이어 구조(분해도)는 첫 화면 3D 시퀀스로 옮겼습니다. 여기에는 그 여섯 레이어의 설명 · 사양만 남깁니다 (script.js HARDWARE_PARTS → site-config.js specs) -->
     <section class="hardware-section" id="hardware" aria-labelledby="hardwareTitle">
         <div class="container">
-            <div class="section-header" data-reveal>
-                <span class="eyebrow">Hardware Specs</span>
-                <h2 id="hardwareTitle">여섯 개의 레이어,<br><span class="text-muted">부품별 사양.</span></h2>
+            <div class="section-header pe-head" data-reveal>
+                <h2 id="hardwareTitle"><span class="l">여섯 개의 레이어,</span><br><span class="b">부품별 사양.</span></h2>
             </div>
 
-            <div class="notice-banner" data-reveal>
-                <svg class="icon"><use href="#i-wrench"/></svg>
-                <span><strong>시제품 구성</strong> — 첫 화면의 분해도는 구성을 설명하는 개념도이며, 부품과 수치는 시제품 검증을 거쳐 정합니다.</span>
-            </div>
+            <p class="pe-note" data-reveal><span class="pe-mono">PROTOTYPE</span><span><strong>시제품 구성</strong> — 첫 화면의 분해도는 구성을 설명하는 개념도이며, 부품과 수치는 시제품 검증을 거쳐 정합니다.</span></p>
 
             <ol class="hw-specs" id="hwSpecs" data-reveal></ol>
         </div>
@@ -507,112 +493,30 @@
 
             <div class="notice-banner light" data-reveal>
                 <svg class="icon"><use href="#i-smartphone"/></svg>
-                <span><strong>UI 프로토타입</strong> — 화면의 수치는 모두 예시 데이터입니다. 실시간 탭은 위 시뮬레이션과 연동됩니다.</span>
+                <span><strong>앱 화면 미리보기</strong> — 탭을 눌러 화면을 살펴보고, ‘앱 열기’로 실제 앱을 체험해 보세요. 방석 없이도 데모 데이터로 동작합니다.</span>
             </div>
 
             <div class="app-preview-layout">
                 <div class="phone-wrapper" data-reveal>
+                    <!-- 허리업 앱 v4 화면 캡처 (images/app/app-v4-*.webp). 실제 앱은 '앱 열기' 버튼으로 새 창에서 엶 -->
                     <div class="smartphone-frame">
-                        <div class="phone-top-bar">
-                            <span class="phone-time">9:41</span>
-                            <div class="phone-notch"></div>
-                            <div class="phone-icons"><svg class="icon"><use href="#i-bluetooth"/></svg><svg class="icon"><use href="#i-battery-medium"/></svg></div>
-                        </div>
-
-                        <div class="app-screen-container" id="appScreenContainer">
-                            <div class="app-tab-view active" id="appViewHome">
-                                <div class="app-header">
-                                    <div class="app-brand">HURRY UP</div>
-                                    <span class="demo-chip">예시 데이터</span>
-                                </div>
-                                <div class="app-hello">안녕하세요, 홍길동 님</div>
-                                <div class="app-card today-score-card">
-                                    <div class="score-ring" style="--score: 88"><span class="score-number">88</span></div>
-                                    <div class="score-info">
-                                        <strong>오늘의 자세 점수</strong>
-                                        <p>어제보다 +12점</p>
-                                    </div>
-                                </div>
-                                <div class="app-grid-stats">
-                                    <div class="app-stat-tile"><span>착석 시간</span><strong>5h 24m</strong></div>
-                                    <div class="app-stat-tile"><span>균형 유지</span><strong class="c-good">78%</strong></div>
-                                    <div class="app-stat-tile"><span>진동 알림</span><strong class="c-warn">6회</strong></div>
-                                    <div class="app-stat-tile"><span>방석 연결</span><strong class="c-blue">BLE</strong></div>
-                                </div>
-                            </div>
-
-                            <div class="app-tab-view" id="appViewLive">
-                                <div class="app-header">
-                                    <div><span class="app-greeting">실시간</span><h3>체압 분포</h3></div>
-                                    <span class="demo-chip live"><i></i> SIM</span>
-                                </div>
-                                <div class="app-card live-mini-map-card">
-                                    <div class="mini-cushion-preview" id="appMiniMap">
-                                        <svg viewBox="0 0 460 380"><use href="#cushionShape"/></svg>
-                                    </div>
-                                    <div class="live-balance-summary">
-                                        <div class="lbs-item"><span>좌측</span><strong id="appLiveLeft">50%</strong></div>
-                                        <div class="lbs-divider"></div>
-                                        <div class="lbs-item"><span>우측</span><strong id="appLiveRight">50%</strong></div>
-                                    </div>
-                                </div>
-                                <div class="app-card">
-                                    <div class="app-card-title"><svg class="icon"><use href="#i-scale"/></svg> 하중 균형</div>
-                                    <p class="app-card-text" id="appLiveVerdict"></p>
-                                </div>
-                            </div>
-
-                            <div class="app-tab-view" id="appViewReport">
-                                <div class="app-header">
-                                    <div><span class="app-greeting">주간 리포트</span><h3>이번 주 습관</h3></div>
-                                    <span class="demo-chip">예시 데이터</span>
-                                </div>
-                                <div class="app-card">
-                                    <div class="app-card-title"><svg class="icon"><use href="#i-chart-column"/></svg> 요일별 균형 유지율</div>
-                                    <div class="app-chart-mockup">
-                                        <div class="bar-col"><div class="bar-val" style="--h:65%"><span>65</span></div><label>월</label></div>
-                                        <div class="bar-col"><div class="bar-val" style="--h:72%"><span>72</span></div><label>화</label></div>
-                                        <div class="bar-col"><div class="bar-val" style="--h:58%"><span>58</span></div><label>수</label></div>
-                                        <div class="bar-col"><div class="bar-val" style="--h:80%"><span>80</span></div><label>목</label></div>
-                                        <div class="bar-col"><div class="bar-val active" style="--h:88%"><span>88</span></div><label>금</label></div>
-                                    </div>
-                                </div>
-                                <div class="app-card">
-                                    <div class="app-card-title"><svg class="icon"><use href="#i-triangle-alert"/></svg> 자주 감지된 쏠림</div>
-                                    <div class="habit-list">
-                                        <div class="habit-item"><span>오른쪽 쏠림</span><strong>주 14회</strong></div>
-                                        <div class="habit-item"><span>앞쪽 쏠림</span><strong>주 11회</strong></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="app-tab-view" id="appViewSettings">
-                                <div class="app-header">
-                                    <div><span class="app-greeting">디바이스</span><h3>설정</h3></div>
-                                </div>
-                                <div class="app-card">
-                                    <div class="setting-item-row"><div><strong>진동 세기</strong><p>3단계</p></div><span class="setting-ctrl-pill">보통</span></div>
-                                    <div class="setting-item-row"><div><strong>감지 민감도</strong><p>알림까지 유지 시간</p></div><span class="setting-ctrl-pill">3초</span></div>
-                                    <div class="setting-item-row"><div><strong>펌웨어</strong><p>무선 업데이트 (계획)</p></div><span class="setting-ctrl-pill">beta</span></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="phone-bottom-nav" aria-hidden="true">
-                            <button class="phone-nav-btn active" type="button" data-tab="home" onclick="switchAppTab('home')" tabindex="-1"><svg class="icon"><use href="#i-house"/></svg><span>홈</span></button>
-                            <button class="phone-nav-btn" type="button" data-tab="live" onclick="switchAppTab('live')" tabindex="-1"><svg class="icon"><use href="#i-activity"/></svg><span>실시간</span></button>
-                            <button class="phone-nav-btn" type="button" data-tab="report" onclick="switchAppTab('report')" tabindex="-1"><svg class="icon"><use href="#i-chart-pie"/></svg><span>리포트</span></button>
-                            <button class="phone-nav-btn" type="button" data-tab="settings" onclick="switchAppTab('settings')" tabindex="-1"><svg class="icon"><use href="#i-settings"/></svg><span>설정</span></button>
+                        <div class="app-shots" id="appShots">
+                            <img class="app-shot" data-tab="home" src="images/app/app-v4-home.webp" width="780" height="1688" alt="홈: 오늘 순공 시간과 공부 기록 시작 버튼" loading="lazy" decoding="async">
+                            <img class="app-shot" data-tab="study" src="images/app/app-v4-study.webp" width="780" height="1688" alt="순공: 순공 시간 타이머와 순공 모드 · 뽀모도로 스위치" loading="lazy" decoding="async">
+                            <img class="app-shot active" data-tab="report" src="images/app/app-v4-report.webp" width="780" height="1688" alt="자세: 오늘 자세점수 100점 A등급과 실시간 압력 분포" loading="lazy" decoding="async">
+                            <img class="app-shot" data-tab="challenge" src="images/app/app-v4-challenge.webp" width="780" height="1688" alt="목표: 오늘 · 주간 · 월간 순공 시간과 달력" loading="lazy" decoding="async">
+                            <img class="app-shot" data-tab="prefs" src="images/app/app-v4-prefs.webp" width="780" height="1688" alt="설정: 프로필, 방석 연결 상태, 센서 보정 단계" loading="lazy" decoding="async">
                         </div>
                     </div>
                 </div>
 
                 <div class="app-feature-desc-card" data-reveal>
                     <div class="app-tabs-selector" role="tablist" aria-label="앱 화면">
-                        <button class="app-tab-btn active" type="button" role="tab" aria-selected="true" data-tab="home" onclick="switchAppTab('home')">홈</button>
-                        <button class="app-tab-btn" type="button" role="tab" aria-selected="false" data-tab="live" onclick="switchAppTab('live')">실시간</button>
-                        <button class="app-tab-btn" type="button" role="tab" aria-selected="false" data-tab="report" onclick="switchAppTab('report')">리포트</button>
-                        <button class="app-tab-btn" type="button" role="tab" aria-selected="false" data-tab="settings" onclick="switchAppTab('settings')">설정</button>
+                        <button class="app-tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="appShots" data-tab="report" onclick="switchAppTab('report')">자세</button>
+                        <button class="app-tab-btn" type="button" role="tab" aria-selected="false" aria-controls="appShots" data-tab="home" onclick="switchAppTab('home')">홈</button>
+                        <button class="app-tab-btn" type="button" role="tab" aria-selected="false" aria-controls="appShots" data-tab="study" onclick="switchAppTab('study')">순공</button>
+                        <button class="app-tab-btn" type="button" role="tab" aria-selected="false" aria-controls="appShots" data-tab="challenge" onclick="switchAppTab('challenge')">목표</button>
+                        <button class="app-tab-btn" type="button" role="tab" aria-selected="false" aria-controls="appShots" data-tab="prefs" onclick="switchAppTab('prefs')">설정</button>
                     </div>
 
                     <div class="app-tab-detail-content" id="appTabDetailContent">
@@ -620,8 +524,8 @@
                         <p id="appTabDesc"></p>
                         <div class="app-features-checklist" id="appFeaturesList"></div>
                         <div class="app-cta-row">
-                            <a href="app/hurryup-app-v3.html" class="btn btn-pill btn-dark" target="_blank" rel="noopener">앱 체험하기 <svg class="icon"><use href="#i-external-link"/></svg></a>
-                            <span class="app-cta-note">새 창 · 데모 시뮬레이터로 동작</span>
+                            <a href="app/hurryup-app-v4.html" class="btn btn-pill btn-dark" target="_blank" rel="noopener">앱 열기 <svg class="icon"><use href="#i-external-link"/></svg></a>
+                            <span class="app-cta-note">새 창에서 실제 앱 실행 · 방석 연결은 Chrome (Android · PC)</span>
                         </div>
                     </div>
                 </div>
@@ -634,19 +538,19 @@
         <div class="container">
             <div class="section-header" data-reveal>
                 <span class="eyebrow">Prototype</span>
-                <h2>허리업 스마트 프로</h2>
+                <h2>HURRY UP 스마트 프로</h2>
             </div>
             <div class="proto-grid">
                 <div class="proto-visual" data-reveal>
                     <picture class="pic-contents">
                         <source type="image/webp" srcset="images/product-hd.webp">
-                        <img src="images/product-hd.png" alt="허리업 스마트 프로 시제품 렌더" width="1365" height="768" loading="lazy" decoding="async">
+                        <img src="images/product-hd.png" alt="HURRY UP 스마트 프로 시제품 렌더" width="1365" height="768" loading="lazy" decoding="async">
                     </picture>
                     <span class="media-tag">3D 렌더</span>
                 </div>
                 <div class="proto-info" data-reveal>
                     <span class="status-chip progress"><i></i> 하드웨어 프로토타입 개발 중</span>
-                    <p class="proto-lead">센서와 진동 피드백을 담은 허리업의 핵심 시제품입니다.</p>
+                    <p class="proto-lead">센서와 진동 피드백을 담은 HURRY UP의 핵심 시제품입니다.</p>
                     <ul class="proto-points">
                         <li><svg class="icon"><use href="#i-scan-line"/></svg><div><strong>다중 압력 센서</strong><span>MVP 시제품에 FSR 센서 적용</span></div></li>
                         <li><svg class="icon"><use href="#i-waves"/></svg><div><strong>저소음 진동 알림</strong><span>본인만 느끼는 짧은 진동</span></div></li>
@@ -668,12 +572,12 @@
         <div class="container">
             <div class="section-header" data-reveal>
                 <span class="eyebrow">Gallery &amp; Materials</span>
-                <h2>가까이서 본 허리업.</h2>
+                <h2>가까이서 본 HURRY UP.</h2>
             </div>
             <div class="gallery-grid" data-reveal-group>
                 <figure class="g-item g-wide" data-reveal>
                     <button type="button" class="g-media" data-lightbox="images/gallery/render-full.webp" data-caption="전체 뷰 — 시제품 3D 렌더" aria-label="전체 뷰 크게 보기">
-                        <img src="images/gallery/render-full.webp" alt="허리업 시제품 전체 렌더" width="1600" height="900" loading="lazy" decoding="async">
+                        <img src="images/gallery/render-full.webp" alt="HURRY UP 시제품 전체 렌더" width="1600" height="900" loading="lazy" decoding="async">
                     </button>
                     <figcaption><span class="media-tag">3D 렌더</span>전체 뷰</figcaption>
                 </figure>
@@ -740,7 +644,7 @@
         <div class="container">
             <div class="section-header" data-reveal>
                 <span class="eyebrow">Development Roadmap</span>
-                <h2>지금 허리업은<br><span class="text-muted">여기까지 왔습니다.</span></h2>
+                <h2>지금 HURRY UP은<br><span class="text-muted">여기까지 왔습니다.</span></h2>
             </div>
             <ol class="timeline" data-reveal>
                 <li class="tl-item done"><span class="tl-dot"></span><span class="tl-num">01</span><strong>제품 콘셉트</strong><span class="status-chip done"><i></i> 완료</span></li>
@@ -799,15 +703,13 @@
 
     <!-- ============ 12. 문의 ============ -->
     <section class="contact" id="contact">
-        <div class="contact-glow" aria-hidden="true"></div>
         <div class="container contact-grid">
             <div class="contact-intro" data-reveal>
-                <span class="eyebrow">Contact</span>
-                <h2>시제품 체험과 협력,<br><span class="gradient-text">함께 만들어 갈 분을 찾습니다.</span></h2>
+                <h2><span class="l">시제품 체험과 협력,</span><br><span class="b">함께 만들어 갈 분을 찾습니다.</span></h2>
                 <ul class="contact-types">
-                    <li><svg class="icon"><use href="#i-flask-conical"/></svg> 시제품 체험 신청</li>
-                    <li><svg class="icon"><use href="#i-hand-heart"/></svg> 사업 · 연구 협력</li>
-                    <li><svg class="icon"><use href="#i-sparkles"/></svg> 투자 및 기타 문의</li>
+                    <li>시제품 체험 신청</li>
+                    <li>사업 · 연구 협력</li>
+                    <li>투자 및 기타 문의</li>
                 </ul>
             </div>
             <form class="contact-form" id="contactForm" novalidate data-reveal>
@@ -857,7 +759,7 @@
                     </details>
                 </div>
                 <div class="cf-turnstile-slot" id="cfTurnstile" hidden></div>
-                <button type="submit" class="btn btn-pill btn-light btn-full">문의 보내기 <svg class="icon"><use href="#i-send"/></svg></button>
+                <button type="submit" class="btn btn-full pe-submit">문의 보내기 <svg class="icon"><use href="#i-send"/></svg></button>
                 <div class="form-status" id="formStatus" role="status" aria-live="polite" hidden></div>
             </form>
         </div>
@@ -869,7 +771,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="images/logo-light.png" alt="허리업 (Hurry Up)" class="logo-img-footer" width="120" height="92" loading="lazy">
+                    <img src="images/logo-light.png" alt="HURRY UP" class="logo-img-footer" width="120" height="92" loading="lazy">
                     <p>앉는 습관을 바꾸는 스마트 자세관리 방석.</p>
                 </div>
                 <div class="footer-links">
@@ -885,20 +787,20 @@
                     <h3>프로젝트</h3>
                     <ul>
                         <li><a href="#roadmap">개발 로드맵</a></li>
-                        <li><a href="app/hurryup-app-v3.html" target="_blank" rel="noopener">앱 데모</a></li>
+                        <li><a href="app/hurryup-app-v4.html" target="_blank" rel="noopener">앱 데모</a></li>
                         <li><a href="media/hurryup-showreel.mp4" download>쇼릴 다운로드 (MP4)</a></li>
                         <li><a href="#contact">체험 · 협력 문의</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2026 허리업(HURRY UP). 표시된 사양과 데이터는 개발 중인 자료이며 확정되지 않았습니다.</p>
+                <p>© 2026 HURRY UP. 표시된 사양과 데이터는 개발 중인 자료이며 확정되지 않았습니다.</p>
             </div>
         </div>
     </footer>
 
     <!-- ============ 쇼릴 모달 ============ -->
-    <dialog class="reel-dialog" id="reelDialog" aria-label="허리업 브랜드 쇼릴">
+    <dialog class="reel-dialog" id="reelDialog" aria-label="HURRY UP 브랜드 쇼릴">
         <div class="reel-frame">
             <video id="reelVideo" controls playsinline preload="none" poster="media/showreel-poster.jpg" width="1920" height="1080">
                 <source src="media/hurryup-showreel.mp4" type="video/mp4">

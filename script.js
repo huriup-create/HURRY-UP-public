@@ -66,37 +66,37 @@ const SENSOR_MAP = [
 const POSTURE_PRESETS = {
     balanced: {
         label: "균형 착석",
+        verdict: "좌우 하중이 고르게 나뉘어 있어요",   // 첫 결과의 쉬운 말 판정
         badgeClass: "badge-balanced", badgeIcon: "shield-check", badgeText: "균형 유지",
         hapticStatus: "대기", hapticClass: "haptic-normal", hapticActive: false,
         ripple: { x: 50, y: 70 },
-        appVerdict: "좌우 하중이 고르게 나뉘어 있어요.",
         tipText: "좌우 하중이 고르게 나뉘어 있습니다.",
         values: { S1: 42, S2: 55, S3: 45, S4: 45, S5: 55, S6: 42, S7: 28, S8: 34, S9: 30, S10: 30, S11: 34, S12: 28 }
     },
     left_tilt: {
         label: "왼쪽 쏠림",
+        verdict: "왼쪽으로 하중이 쏠렸어요",   // 첫 결과의 쉬운 말 판정
         badgeClass: "badge-alert", badgeIcon: "triangle-alert", badgeText: "좌측 쏠림 감지",
         hapticStatus: "작동 (좌측 알림)", hapticClass: "haptic-alert", hapticActive: true,
         ripple: { x: 35, y: 68 },
-        appVerdict: "왼쪽으로 하중이 쏠려 있어요.",
         tipText: "하중의 대부분이 왼쪽에 실려 있습니다. 일정 시간 이어지면 진동으로 알립니다.",
         values: { S1: 82, S2: 95, S3: 86, S4: 24, S5: 20, S6: 18, S7: 68, S8: 72, S9: 60, S10: 16, S11: 18, S12: 12 }
     },
     right_tilt: {
         label: "오른쪽 쏠림",
+        verdict: "오른쪽으로 하중이 쏠렸어요",   // 첫 결과의 쉬운 말 판정
         badgeClass: "badge-alert", badgeIcon: "triangle-alert", badgeText: "우측 쏠림 감지",
         hapticStatus: "작동 (우측 알림)", hapticClass: "haptic-alert", hapticActive: true,
         ripple: { x: 65, y: 68 },
-        appVerdict: "오른쪽으로 하중이 쏠려 있어요.",
         tipText: "하중의 대부분이 오른쪽에 실려 있습니다. 진동 알림이 작동하는 상황입니다.",
         values: { S1: 18, S2: 22, S3: 20, S4: 85, S5: 96, S6: 86, S7: 15, S8: 18, S9: 14, S10: 64, S11: 76, S12: 70 }
     },
     forward_lean: {
         label: "앞쪽 쏠림",
+        verdict: "앞쪽으로 하중이 쏠렸어요",   // 첫 결과의 쉬운 말 판정
         badgeClass: "badge-warning", badgeIcon: "circle-alert", badgeText: "앞쪽 쏠림 감지",
         hapticStatus: "작동 (앞쪽 쏠림 알림)", hapticClass: "haptic-alert", hapticActive: true,
         ripple: { x: 50, y: 46 },
-        appVerdict: "체중이 허벅지 쪽으로 쏠려 있어요.",
         tipText: "허벅지 쪽 압력이 높아졌습니다. 체중이 앞으로 쏠린 상태입니다.",
         values: { S1: 20, S2: 25, S3: 22, S4: 22, S5: 26, S6: 20, S7: 78, S8: 88, S9: 80, S10: 80, S11: 89, S12: 79 }
     }
@@ -208,7 +208,7 @@ function initPressureSimulation() {
     const plate = $('demoPlate'), ripple = $('hapticRipple');
     const out = {
         L: $('leftBalanceVal'), R: $('rightBalanceVal'), gauge: $('balanceGaugeMark'), fr: $('frontRearVal'),
-        avg: $('avgPressureVal'), peak: $('peakSensorVal'), status: $('simStatus'), tip: $('simTipText'),
+        avg: $('avgPressureVal'), peak: $('peakSensorVal'), status: $('simStatus'), verdict: $('simVerdict'), tip: $('simTipText'),
         bias: $('simBias'), trace: $('simTraceLine'), fb: $('simFeedback'), fbText: $('simFbText'), hold: $('simHold')
     };
     const MAX_BIAS = (metricsOf(P.right_tilt.values).rightRatio - 50) || 32;
@@ -239,7 +239,7 @@ function initPressureSimulation() {
         const key = classifyPosture(m), p = P[key];
         if (key !== shownKey) {
             shownKey = key;
-            setText(out.status, 'status', p.badgeText); setText(out.tip, 'tip', p.tipText);
+            setText(out.status, 'status', p.badgeText); setText(out.verdict, 'verdict', p.verdict); setText(out.tip, 'tip', p.tipText);
             ripple?.style.setProperty('--rx', `${p.ripple.x}%`); ripple?.style.setProperty('--ry', `${p.ripple.y}%`);
         }
 
@@ -263,6 +263,7 @@ function initPressureSimulation() {
             else { state = 'idle'; setText(out.fbText, 'fb', '진동 알림 · 대기'); }
         }
         out.fb.dataset.state = state;
+        demo.dataset.fb = state;                                // 첫 결과 아래 '편향 지속' 시간도 같은 상태 색 (알림 = 앰버)
         field.toggleAttribute('data-alert', state === 'alert');
 
         if (out.trace && now - lastSample >= 100) {
@@ -271,7 +272,6 @@ function initPressureSimulation() {
         }
         if (now - lastSync >= 150) {
             lastSync = now;
-            syncAppLiveView(cur, m, p);
             if (compareMode) renderComparison(cur, p);
         }
     }
@@ -347,15 +347,6 @@ function renderComparison(values, p) {
     }).join('');
 }
 
-// 앱 미리보기 › 실시간 탭: 체험 데모와 같은 값
-function syncAppLiveView(values, m, p) {
-    paintDots($('appMiniMap'), values);
-    const L = $('appLiveLeft'), R = $('appLiveRight'), verdict = $('appLiveVerdict');
-    if (L) L.textContent = `${m.leftRatio}%`;
-    if (R) R.textContent = `${m.rightRatio}%`;
-    if (verdict) verdict.textContent = p.appVerdict;
-}
-
 // ---------------------------------------------------------
 // 3. 하드웨어 구성 (시제품 단계)
 //    ⚠ 사양 값은 site-config.js → specs 에서만 수정합니다 (여기는 문구 · 구성만).
@@ -426,26 +417,33 @@ function renderHardwareSpecs() {
 // ---------------------------------------------------------
 // 4. 앱 미리보기
 // ---------------------------------------------------------
+// 휴대폰 화면 = 앱 v4 화면 캡처 (images/app/app-v4-<탭>.webp). 실제 앱은 '앱 열기' 버튼으로 새 창에서 엶.
+// 탭 키 = 앱의 화면 주소(#home · #study · #report · #challenge · #prefs). 앱이 바뀌면 캡처와 여기 문구를 같이 바꾸세요.
 const APP_TAB_INFO = {
     home: {
-        title: "한눈에 보는 오늘의 자세",
-        desc: "착석 시간과 균형 유지율을 점수로 보여 줍니다.",
-        features: ["일간 자세 점수", "착석 시간 · 휴식 알림", "방석 연결 상태"]
+        title: "앉으면 시작되는 공부 기록",
+        desc: "방석에 앉아 있는 시간을 순공 시간으로 기록하고, 오늘 얼마나 집중했는지 한눈에 보여 줍니다.",
+        features: ["오늘 순공 시간", "뽀모도로 바로 시작", "오늘 자세 기록 요약"]
     },
-    live: {
-        title: "지금 이 순간의 체압 분포",
-        desc: "좌우 균형과 압력 분포를 실시간으로 봅니다. 위 시뮬레이션과 연동됩니다.",
-        features: ["압력 히트맵 미니뷰", "좌 · 우 하중 비율", "쏠림 경고"]
+    study: {
+        title: "착석으로 재는 순공 시간",
+        desc: "순공 모드를 켜면 방석에 앉는 순간 측정이 시작되고, 일어나면 멈춥니다.",
+        features: ["착석 감지 자동 시작 · 정지", "뽀모도로 (집중 25분 · 휴식 5분)", "공부 중엔 팝업 대신 방석 진동"]
     },
     report: {
-        title: "데이터로 보는 한 주의 습관",
-        desc: "요일별 균형 유지율과 자주 나온 쏠림을 정리해 줍니다.",
-        features: ["요일별 균형 유지율", "자주 감지된 쏠림 유형", "주간 변화 추이"]
+        title: "점수로 보는 오늘의 자세",
+        desc: "센서 12개의 압력 분포로 자세 점수와 등급을 매기고, 일간 · 주간 · 월간 기록을 남깁니다.",
+        features: ["자세 점수 · 등급", "실시간 압력 분포 · 좌우 균형", "시간대별 자세 기록"]
     },
-    settings: {
-        title: "내 몸에 맞춘 설정",
-        desc: "진동 세기와 감지 민감도를 조절합니다.",
-        features: ["진동 세기 3단계", "알림까지 유지 시간", "펌웨어 무선 업데이트 (계획)"]
+    challenge: {
+        title: "매일 채우는 순공 목표",
+        desc: "일일 목표를 정하고 주간 · 월간 순공 시간과 달력으로 꾸준함을 확인합니다.",
+        features: ["일일 순공 목표", "주간 · 월간 순공 그래프", "월간 달력 기록"]
+    },
+    prefs: {
+        title: "내 방석에 맞춘 설정",
+        desc: "방석을 블루투스로 연결하고, 단계별 안내에 따라 내 체형에 맞게 센서를 보정합니다.",
+        features: ["방석 BLE 연결 · 배터리 상태", "센서 3단계 보정 (빈 방석 → 착석 → 바른 자세)", "이름 · 프로필 설정"]
     }
 };
 let currentAppTab = 'home';
@@ -454,16 +452,19 @@ function switchAppTab(tabKey, { silent = false } = {}) {
     const info = APP_TAB_INFO[tabKey];
     if (!info) return;
     currentAppTab = tabKey;
-    document.querySelectorAll('.app-tab-view').forEach(v => v.classList.remove('active'));
-    $(`appView${tabKey.charAt(0).toUpperCase()}${tabKey.slice(1)}`)?.classList.add('active');
-    document.querySelectorAll('.phone-nav-btn, .app-tab-btn').forEach(btn => {
+    document.querySelectorAll('.app-tab-btn').forEach(btn => {
         const on = btn.dataset.tab === tabKey;
         btn.classList.toggle('active', on);
-        if (btn.classList.contains('app-tab-btn')) btn.setAttribute('aria-selected', on);
+        btn.setAttribute('aria-selected', on);
     });
     $('appTabTitle').textContent = info.title;
     $('appTabDesc').textContent = info.desc;
     $('appFeaturesList').innerHTML = info.features.map(f => `<div class="af-item">${icon('check')}<span>${f}</span></div>`).join('');
+    document.querySelectorAll('.app-shot').forEach(img => {
+        const on = img.dataset.tab === tabKey;
+        img.classList.toggle('active', on);
+        img.toggleAttribute('aria-hidden', !on);
+    });
     if (!silent) restartAnimation($('appTabDetailContent'), 'swap');
 }
 
@@ -566,7 +567,7 @@ function initDialogs() {
         reelVideo.play().catch(() => {});
     });
     $('reelCloseBtn')?.addEventListener('click', () => reel.close());
-    reel?.addEventListener('close', () => { reelVideo.pause(); unlockScroll(); $('reelOpenBtn').focus(); });
+    reel?.addEventListener('close', () => { reelVideo.pause(); unlockScroll(); $('reelOpenBtn')?.focus(); });
     reel?.addEventListener('click', (e) => { if (e.target === reel) reel.close(); });
 
     const lb = $('lightbox');
@@ -754,7 +755,7 @@ function initGallerySlots() {
         if (!c || !c.src || !ph) return;                    // 사진이 없으면 자리 표시 유지
         const tag = fig.querySelector('figcaption .media-tag');
         if (!String(c.alt || '').trim()) console.warn(`[HURRY UP] 갤러리 '${key}'에 alt 설명이 없습니다. 사진 내용을 설명하는 문구를 넣어 주세요.`);
-        const alt = String(c.alt || '').trim() || `허리업 시제품 ${c.caption || ''} 사진`.trim();
+        const alt = String(c.alt || '').trim() || `HURRY UP 시제품 ${c.caption || ''} 사진`.trim();
         const ratio = [...ph.classList].find(cl => cl.startsWith('ratio-')) || '';
         const largest = String(c.srcset || '').split(',').map(x => x.trim().split(/\s+/)[0]).filter(Boolean).pop() || c.src;
 
@@ -914,9 +915,14 @@ function initSpotlightCards() {
 function splitStatementWords() {
     const el = document.querySelector('[data-split-words]');
     if (!el) return [];
-    const words = el.textContent.trim().split(/\s+/);
+    // 줄(.st-line)이 있으면 줄마다 나눠 굵기 대비(가는 1행 · 굵은 2행)를 유지
+    const lines = [...el.querySelectorAll('.st-line')].map(l => ({ cls: l.className, words: l.textContent.trim().split(/\s+/) }));
+    const all = lines.length ? lines.flatMap(l => l.words) : el.textContent.trim().split(/\s+/);
+    const wrap = (ws) => ws.map(w => `<span class="w" aria-hidden="true">${w}</span>`).join(' ');
     // 단어별 애니메이션용 span은 보조기기에서 숨기고, 문장 전체를 한 번에 읽도록 별도 텍스트 제공
-    el.innerHTML = `<span class="sr-only">${words.join(' ')}</span>` + words.map(w => `<span class="w" aria-hidden="true">${w}</span>`).join(' ');
+    el.innerHTML = `<span class="sr-only">${all.join(' ')}</span>` + (lines.length
+        ? lines.map(l => `<span class="${l.cls}">${wrap(l.words)}</span>`).join(' ')
+        : wrap(all));
     return el.querySelectorAll('.w');
 }
 
@@ -1009,7 +1015,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSensorDots(bento.querySelector('.sd-shape'));
     }
     renderSensorDots($('storySensorDots'));
-    renderSensorDots($('appMiniMap'), 'mini-dot');
     const diagram = $('gallerySensorDiagram');
     if (diagram) {
         renderSensorDots(diagram, 'diag-dot').forEach((d, i) => { d.textContent = SENSOR_MAP[i].id; });
@@ -1017,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initPressureSimulation();
     renderHardwareSpecs();
-    switchAppTab('home', { silent: true });
+    switchAppTab('report', { silent: true });   // 자세 화면이 먼저 (자세 방석이라는 위치를 앱에서도 먼저)
 
     applySpecText();
     initGallerySlots();   // 라이트박스 연결(initDialogs) 전에 실행
