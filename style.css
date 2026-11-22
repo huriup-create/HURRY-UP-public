@@ -1901,3 +1901,28 @@ main > section { overflow-x: clip; }
 .section-header.pe-head { margin-bottom: clamp(28px, 3.4vw, 48px); }
 @media (min-width: 1024px) { .story-step { min-height: 30vh; padding: 28px 0; } }
 @media (max-width: 1023px) { .story-step { padding: 28px 0; } }
+
+/* =========================================================
+   2026-11 정리 3차: 첫 화면 문장 · 섹션마다 첫 항목만 · 스크롤 변화 늦춤
+   ========================================================= */
+/* 첫 화면: 제목 아래 두 문장 (이전 #about 문장). 1행은 설명 회색, 2행은 잉크로 조금 더 단단하게 */
+.cine .hero-statement { margin: 0; }
+.cine .hero-statement .hs-line { display: block; }
+.cine .hero-statement .hs-strong { color: var(--pe-text); font-weight: 500; }
+
+/* 하드웨어: 맨 위 레이어 한 장 */
+#hardware .hw-specs { grid-template-columns: minmax(0, 1fr); max-width: 560px; }
+
+/* 로드맵: 첫 단계 한 줄 (7칸 트랙과 진행선은 한 항목에는 의미 없음) */
+#roadmap .timeline { grid-template-columns: minmax(0, 1fr); padding: 0; justify-items: center; }
+#roadmap .timeline::before, #roadmap .timeline::after { content: none; }
+#roadmap .tl-item { flex-direction: row; align-items: center; gap: 12px; text-align: left; padding: 0; }
+#roadmap .tl-dot { position: relative; top: auto; flex: none; }
+#roadmap .tl-item strong { min-height: 0; }
+
+/* 갤러리: 전체 뷰 한 장을 가득 */
+#gallery .gallery-grid { grid-template-columns: minmax(0, 1fr); }
+#gallery .g-wide { grid-column: 1 / -1; grid-row: auto; }
+
+/* 스크롤로 나타나는 요소: 조금 더 올라온 뒤(script.js -22%), 조금 더 천천히 */
+.js [data-reveal] { transition: opacity 0.8s var(--ease), transform 1.2s var(--ease); }

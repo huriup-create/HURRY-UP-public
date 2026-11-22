@@ -401,7 +401,7 @@ const HARDWARE_ORDER = { cover_foam: '폼 · 외피 커버', sensor_array: '압�
 function renderHardwareSpecs() {
     const list = $('hwSpecs');
     if (!list) return;
-    list.innerHTML = Object.entries(HARDWARE_ORDER).map(([key, name], i) => {
+    list.innerHTML = Object.entries(HARDWARE_ORDER).slice(0, 1).map(([key, name], i) => {   // 맨 위 레이어(폼 · 외피 커버)만 표시
         const d = HARDWARE_PARTS[key];
         const rows = d.table.map(r => `<tr><th scope="row">${r.label}</th><td>${r.val}</td></tr>`).join('');
         return `<li class="spec-card hw-spec" data-part="${key}">
@@ -898,7 +898,7 @@ function initReveals() {
     if (prefersReducedMotion || !('IntersectionObserver' in window)) { targets.forEach(el => el.classList.add('is-in')); return; }
     const io = new IntersectionObserver(entries => {
         entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('is-in'); io.unobserve(entry.target); } });
-    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
+    }, { rootMargin: '0px 0px -22% 0px', threshold: 0.1 });   // 화면 아래에서 어느 정도 올라온 뒤 나타남
     targets.forEach(el => io.observe(el));
 }
 
@@ -937,7 +937,7 @@ function initStory() {
             steps.forEach(s => s.classList.toggle('active', s === entry.target));
             bars.forEach((b, i) => b.classList.toggle('active', String(i + 1) === n));
         });
-    }, { rootMargin: '-45% 0px -45% 0px' });
+    }, { rootMargin: '-30% 0px -60% 0px' });   // 단계 글이 화면 위쪽(30–40%)까지 올라온 뒤 장면 전환
     steps.forEach(s => io.observe(s));
 }
 

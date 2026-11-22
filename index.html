@@ -167,24 +167,49 @@
                     <span class="pe-title-line pe-title-light">앉는 순간,</span>
                     <span class="pe-title-line pe-title-bold">자세가 깨어납니다.</span>
                 </h1>
+                <p class="pe-lede hero-statement"><span class="hs-line">대부분의 방석은 받쳐 줄 뿐입니다.</span> <span class="hs-line hs-strong">HURRY UP은 자세를 알려 줍니다.</span></p>
             </div>
 
             <div class="cine-hud">
-                <a href="#about" class="cine-skip" data-skip-intro>인트로 건너뛰기 <svg class="icon" aria-hidden="true"><use href="#i-arrow-down"/></svg></a>
+                <a href="#film" class="cine-skip" data-skip-intro>인트로 건너뛰기 <svg class="icon" aria-hidden="true"><use href="#i-arrow-down"/></svg></a>
             </div>
         </div>
     </section>
 
-    <!-- ============ 02. 스테이트먼트 + 핵심 특징 ============ -->
-    <section class="about" id="about" tabindex="-1">
-        <div class="container">
-            <h2 class="sr-only">HURRY UP이 하는 일</h2>
-            <!-- 굵기 대비 두 줄 (가는 1행 · 굵은 2행). 단어별 밝아짐은 script.js splitStatementWords가 줄마다 나눔 -->
-            <p class="statement" data-split-words>
-                <span class="st-line st-l">대부분의 방석은 받쳐 줄 뿐입니다.</span>
-                <span class="st-line st-b">HURRY UP은 자세를 알려 줍니다.</span>
-            </p>
 
+    <!-- ============ 02-B. 브랜드 필름 (15초 쇼릴) ============ -->
+    <section class="film" id="film" aria-labelledby="filmTitle" tabindex="-1">
+        <div class="container">
+            <div class="section-header" data-reveal>
+                <span class="eyebrow">Brand Film</span>
+                <h2 id="filmTitle">15초로 보는 HURRY UP.</h2>
+            </div>
+            <div class="film-frame" id="filmFrame" data-reveal>
+                <!-- JS 없이도 재생 가능: 기본 컨트롤 + 720p 소스. JS가 있으면 화면 크기에 맞는 소스·자동 재생으로 교체 -->
+                <video id="filmVideo" class="film-video" controls muted loop playsinline preload="none" poster="media/showreel-poster.jpg" width="1920" height="1080" aria-label="HURRY UP 브랜드 쇼릴, 15초">
+                    <source src="media/hurryup-showreel-720.mp4" type="video/mp4">
+                    <source src="media/hurryup-showreel-720.webm" type="video/webm">
+                </video>
+                <button type="button" class="film-start" id="filmStart" hidden aria-label="쇼릴 재생">
+                    <span><svg class="icon"><use href="#i-play"/></svg></span>
+                </button>
+                <div class="film-controls" id="filmControls" hidden>
+                    <button type="button" class="film-btn" id="filmPlay" aria-label="일시정지">
+                        <svg class="icon icon-pause"><use href="#i-pause"/></svg><svg class="icon icon-play"><use href="#i-play"/></svg>
+                    </button>
+                    <button type="button" class="film-btn wide" id="filmSound" aria-label="소리 켜기">
+                        <svg class="icon icon-muted"><use href="#i-volume-x"/></svg><svg class="icon icon-sound"><use href="#i-volume-2"/></svg><span>소리 켜기</span>
+                    </button>
+                    <div class="film-progress" aria-hidden="true"><i id="filmBar"></i></div>
+                    <button type="button" class="film-btn" id="filmFull" aria-label="전체 화면">
+                        <svg class="icon"><use href="#i-maximize"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="film-meta" data-reveal>
+                <span>2.5D 모션 그래픽 · 시제품 렌더 기반 · 콘셉트 시각화와 예시 데이터 포함</span>
+                <a href="media/hurryup-showreel.mp4" download class="film-dl"><svg class="icon"><use href="#i-download"/></svg> MP4 다운로드 (1080p, 사운드)</a>
+            </div>
         </div>
     </section>
 
@@ -220,7 +245,7 @@
     <section class="technology" id="technology">
         <div class="container">
             <div class="section-header pe-head" data-reveal>
-                <h2><span class="l">감지하고, 판단하고,</span> <span class="b">알려 줍니다.</span></h2>
+                <h2><span class="l">바르게 앉으면 조용히,</span> <span class="b">기울면 짧게.</span></h2>
             </div>
 
             <div class="story">
@@ -463,7 +488,7 @@
                     <p class="proto-note" id="protoPriceNote">가격과 출시 일정은 아직 정해지지 않았습니다.</p>
                     <div class="proto-cta">
                         <a href="#contact" class="btn btn-pill btn-accent" data-inquiry="trial">시제품 체험 신청 <svg class="icon"><use href="#i-arrow-right"/></svg></a>
-                        <a href="#contact" class="btn btn-pill btn-outline" data-inquiry="partner">협력 문의</a>
+                        <a href="#contact" class="btn btn-pill btn-outline">협력 문의</a>
                     </div>
                 </div>
             </div>
@@ -484,60 +509,6 @@
                     </button>
                     <figcaption><span class="media-tag">3D 렌더</span>전체 뷰</figcaption>
                 </figure>
-                <figure class="g-item" data-reveal>
-                    <button type="button" class="g-media" data-lightbox="images/gallery/detail-power.webp" data-caption="전원 버튼과 측면 곡선 — 렌더 크롭" aria-label="전원 버튼 디테일 크게 보기">
-                        <img src="images/gallery/detail-power.webp" alt="전원 버튼과 측면 곡선 디테일" width="600" height="340" loading="lazy" decoding="async">
-                    </button>
-                    <figcaption><span class="media-tag">렌더 크롭</span>전원 버튼 · 측면</figcaption>
-                </figure>
-                <figure class="g-item" data-reveal>
-                    <button type="button" class="g-media" data-lightbox="images/gallery/detail-edge.webp" data-caption="테두리 곡면 — 렌더 크롭" aria-label="테두리 곡면 크게 보기">
-                        <img src="images/gallery/detail-edge.webp" alt="방석 테두리 곡면 디테일" width="700" height="770" loading="lazy" decoding="async">
-                    </button>
-                    <figcaption><span class="media-tag">렌더 크롭</span>테두리 곡면</figcaption>
-                </figure>
-                <figure class="g-item" data-reveal>
-                    <div class="g-media g-diagram" id="gallerySensorDiagram">
-                        <svg viewBox="0 0 460 380" aria-hidden="true"><use href="#cushionShape"/></svg>
-                    </div>
-                    <figcaption><span class="media-tag">다이어그램</span>센서 배열 (콘셉트)</figcaption>
-                </figure>
-                <!--
-                  ▼ 실사 슬롯 3개 (data-gallery-slot). HTML은 수정하지 마세요.
-                    사진이 준비되면: python tools/prep_photo.py <slot> <원본 사진>
-                    → 출력된 설정을 site-config.js → gallery.<slot> 에 붙여 넣으면
-                      자리 표시가 반응형 이미지(srcset · lazy · alt)로 자동 교체됩니다.
-                -->
-                <figure class="g-item" data-reveal data-gallery-slot="material">
-                    <div class="g-media g-placeholder ratio-4x3" role="img" aria-label="쿠션 소재 클로즈업 사진 자리, 실제 사진 준비 중">
-                        <span class="ph-frame" aria-hidden="true"></span>
-                        <svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg>
-                        <strong>쿠션 소재 클로즈업</strong>
-                        <span>실제 시제품 사진 준비 중</span>
-                        <small>권장 4:3 · 1600×1200px 이상 · 매크로</small>
-                    </div>
-                    <figcaption><span class="media-tag muted">사진 준비 중</span>쿠션 소재</figcaption>
-                </figure>
-                <figure class="g-item" data-reveal data-gallery-slot="pcb">
-                    <div class="g-media g-placeholder ratio-4x3" role="img" aria-label="내부 PCB와 진동 모터 사진 자리, 실제 사진 준비 중">
-                        <span class="ph-frame" aria-hidden="true"></span>
-                        <svg class="icon" aria-hidden="true"><use href="#i-cpu"/></svg>
-                        <strong>내부 PCB · 진동 모터</strong>
-                        <span>실제 부품 사진 준비 중</span>
-                        <small>권장 4:3 · 1600×1200px 이상 · 탑뷰</small>
-                    </div>
-                    <figcaption><span class="media-tag muted">사진 준비 중</span>PCB · 진동 모터</figcaption>
-                </figure>
-                <figure class="g-item g-full" data-reveal data-gallery-slot="side">
-                    <div class="g-media g-placeholder ratio-3x1" role="img" aria-label="측면 프로필 사진 자리, 실제 사진 준비 중">
-                        <span class="ph-frame" aria-hidden="true"></span>
-                        <svg class="icon" aria-hidden="true"><use href="#i-image"/></svg>
-                        <strong>측면 프로필</strong>
-                        <span>실제 시제품 사진 준비 중 · 두께와 곡면 실루엣</span>
-                        <small>권장 3:1 · 2400×800px 이상 · 정측면, 무광 배경</small>
-                    </div>
-                    <figcaption><span class="media-tag muted">사진 준비 중</span>측면 프로필</figcaption>
-                </figure>
             </div>
         </div>
     </section>
@@ -551,12 +522,6 @@
             </div>
             <ol class="timeline" data-reveal>
                 <li class="tl-item done"><span class="tl-dot"></span><span class="tl-num">01</span><strong>제품 콘셉트</strong><span class="status-chip done"><i></i> 완료</span></li>
-                <li class="tl-item progress" aria-current="step"><span class="tl-dot"></span><span class="tl-num">02</span><strong>하드웨어 프로토타입</strong><span class="status-chip progress"><i></i> 진행 중</span></li>
-                <li class="tl-item pending"><span class="tl-dot"></span><span class="tl-num">03</span><strong>센서 검증</strong><span class="status-chip pending"><i></i> 확인 대기</span></li>
-                <li class="tl-item pending"><span class="tl-dot"></span><span class="tl-num">04</span><strong>사용자 테스트</strong><span class="status-chip pending"><i></i> 확인 대기</span></li>
-                <li class="tl-item unverified"><span class="tl-dot"></span><span class="tl-num">05</span><strong>인증 준비</strong><span class="status-chip unverified"><i></i> 미검증</span></li>
-                <li class="tl-item unverified"><span class="tl-dot"></span><span class="tl-num">06</span><strong>양산 준비</strong><span class="status-chip unverified"><i></i> 미검증</span></li>
-                <li class="tl-item todo"><span class="tl-dot"></span><span class="tl-num">07</span><strong>출시</strong><span class="status-chip todo"><i></i> 시작 전</span></li>
             </ol>
             <p class="roadmap-note">단계별 상태는 잠정이며, 확인되는 대로 업데이트합니다.</p>
         </div>
@@ -611,17 +576,12 @@
                 <h2><span class="l">시제품 체험과 협력,</span><br><span class="b">함께 만들어 갈 분을 찾습니다.</span></h2>
                 <ul class="contact-types">
                     <li>시제품 체험 신청</li>
-                    <li>사업 · 연구 협력</li>
-                    <li>투자 및 기타 문의</li>
                 </ul>
             </div>
             <form class="contact-form" id="contactForm" novalidate data-reveal>
                 <div class="field field-select">
                     <select id="cfType" name="type" required>
                         <option value="trial">시제품 체험 신청</option>
-                        <option value="partner">사업 · 연구 협력</option>
-                        <option value="invest">투자</option>
-                        <option value="etc">기타</option>
                     </select>
                     <label for="cfType">문의 유형</label>
                 </div>
